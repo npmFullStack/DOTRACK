@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>love4rent</title>
+  </head>
+  <body>
+  <script>
+    console.log('HTML loaded');
+    window.onerror = function(msg, url, line, col, error) {
+      console.error('GLOBAL ERROR:', msg, error);
+      document.body.innerHTML += '<div style="color:red;padding:20px;">Error: ' + msg + '</div>';
+      return false;
+    };
+  </script>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

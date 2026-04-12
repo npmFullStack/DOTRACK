@@ -1,0 +1,26 @@
+/* index.css */
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        font-family: "Funnel Sans", sans-serif;
+        background-color: #ffffff;
+    }
+}
+
+@layer utilities {
+    .font-logo {
+        font-family: "Caveat", cursive;
+        font-weight: 900;
+        font-stretch: expanded;
+    }
+
+    .font-button {
+        font-family: "Funnel Sans", sans-serif;
+        font-weight: 700;
+    }
+}
