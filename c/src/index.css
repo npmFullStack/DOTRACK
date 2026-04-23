@@ -1,26 +1,30 @@
 /* index.css */
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fuzzy+Bubbles:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-    body {
-        font-family: "Funnel Sans", sans-serif;
-        background-color: #ffffff;
-    }
+  *,
+  *::before,
+  *::after {
+    font-family: "Fuzzy Bubbles", sans-serif;
+  }
+
+  body {
+    background-color: #ffffff;
+  }
 }
 
 @layer utilities {
-    .font-logo {
-        font-family: "Caveat", cursive;
-        font-weight: 900;
-        font-stretch: expanded;
-    }
+  .font-logo {
+    font-family: "Fuzzy Bubbles", sans-serif;
+    font-weight: 700;
+  }
 
-    .font-button {
-        font-family: "Funnel Sans", sans-serif;
-        font-weight: 700;
-    }
+  .font-button {
+    font-family: "Fuzzy Bubbles", sans-serif;
+    font-weight: 700;
+  }
 }

@@ -1,9 +1,9 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="222px" height="222px" viewBox="-3.2 -3.2 38.40 38.40" enable-background="new 0 0 32 32" xml:space="preserve" fill="#000000" transform="rotate(0)" stroke="#000000" stroke-width="0.00032">
-<g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(0,0), scale(1)">
-<rect x="-3.2" y="-3.2" width="38.40" height="38.40" rx="19.2" fill="#ffd977" strokewidth="0"/>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-51.2 -51.2 614.40 614.40" xml:space="preserve" width="800px" height="800px" fill="#000000">
+<g id="SVGRepo_bgCarrier" stroke-width="0">
+<rect x="-51.2" y="-51.2" width="614.40" height="614.40" rx="55.29599999999999" fill="#F0F8FF" strokewidth="0"/>
 </g>
 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-<g id="SVGRepo_iconCarrier"> <rect x="12" y="18" fill="#FBBF24" width="10" height="11"/> <g> <polygon fill="#FFA28D" points="21.66,17 13,17 16.85,8 17.81,8 "/> </g> <path fill="#2D2220" d="M22.96,17.48l-6.5-15.17c-0.08-0.19-0.26-0.3-0.46-0.3s-0.38,0.11-0.46,0.3l-6.5,15.17L9,17.67v12.32h14 V17.67L22.96,17.48z M14.19,8h3.62l3.851,9H10.34L14.19,8z M22,29h-3v-0.5c0-0.28-0.22-0.5-0.5-0.5S18,28.22,18,28.5V29h-2v-3.5 c0-0.28-0.22-0.5-0.5-0.5S15,25.22,15,25.5V29h-1v-8.5c0-0.28-0.22-0.5-0.5-0.5S13,20.22,13,20.5V29h-3V18h8v7.5 c0,0.28,0.22,0.5,0.5,0.5s0.5-0.22,0.5-0.5V18h3V29z"/> </g>
+<g id="SVGRepo_iconCarrier"> <g> <rect x="238.984" y="118.986" style="fill:#FF0800;" width="199.188" height="16"/> <rect x="238.984" y="177.217" style="fill:#FF0800;" width="273.02" height="16"/> <rect x="238.984" y="329.623" style="fill:#FF0800;" width="189.006" height="16"/> <rect x="238.984" y="389.702" style="fill:#FF0800;" width="273.02" height="16"/> </g> <rect x="8" y="90.753" style="fill:#FFFFFF;" width="143.438" height="143.438"/> <path style="fill:#FF0800;" d="M143.44,98.755v127.44H16V98.755H143.44 M159.44,82.754H0v159.44h159.44V82.754z"/> <rect x="8" y="303.217" style="fill:#FFFFFF;" width="143.438" height="143.449"/> <path style="fill:#FF0800;" d="M143.44,311.211v127.44H16v-127.44H143.44 M159.44,295.21H0v159.44h159.44V295.21z"/> <g> <polygon style="fill:#1034A6;" points="96.016,416.707 35.36,362.835 56.504,339.026 91.792,370.37 170.296,269.826 195.4,289.427 "/> <polygon style="fill:#1034A6;" points="96.016,204.234 35.36,150.362 56.504,126.554 91.792,157.899 170.296,57.354 195.4,76.954 "/> </g> </g>
 </svg>

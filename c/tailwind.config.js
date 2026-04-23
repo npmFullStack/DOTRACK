@@ -1,22 +1,23 @@
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
-    content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-    theme: {
-        extend: {
-            colors: {
-                primary: "#FBBF24",
-                secondary: "#374151",
-            },
-            fontFamily: {
-                logo: ['"Caveat"', "cursive"],
-                button: ['"Funnel Sans"', "sans-serif"],
-                sans: ['"Funnel Sans"', "sans-serif"],
-            },
-            fontWeight: {
-                logo: '900',
-            }
-        }
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#FF0800",
+        secondary: "#1034A6",
+        bgLight: "#F0F8FF",
+      },
+      fontFamily: {
+        logo: ['"Fuzzy Bubbles"', "sans-serif"],
+        button: ['"Fuzzy Bubbles"', "sans-serif"],
+        sans: ['"Fuzzy Bubbles"', "sans-serif"],
+      },
+      fontWeight: {
+        logo: "700",
+      },
     },
-    plugins: []
+  },
+  plugins: [],
 };
