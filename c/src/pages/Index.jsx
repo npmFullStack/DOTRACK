@@ -1,5 +1,6 @@
 // src/pages/Index.jsx
 import Header from "@/components/_Header";
+import Footer from "@/components/_Footer";
 import Button from "@/components/_Button";
 import StickyNotesCard from "@/components/_StickyNotesCard";
 import { motion } from "framer-motion";
@@ -12,7 +13,8 @@ import {
     Calendar,
     TrendingUp,
     Target,
-    Zap
+    Zap,
+    Trophy
 } from "lucide-react";
 
 const Index = () => {
@@ -57,6 +59,114 @@ const Index = () => {
         }
     ];
 
+    // Mock leaderboard data with avatars and task completion counts
+    const leaderboardData = [
+        {
+            id: 1,
+            name: "Alex Johnson",
+            avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+            tasksCompleted: 247,
+            rank: 1
+        },
+        {
+            id: 2,
+            name: "Sarah Chen",
+            avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+            tasksCompleted: 231,
+            rank: 2
+        },
+        {
+            id: 3,
+            name: "Marcus Williams",
+            avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+            tasksCompleted: 218,
+            rank: 3
+        },
+        {
+            id: 4,
+            name: "Emma Rodriguez",
+            avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+            tasksCompleted: 204,
+            rank: 4
+        },
+        {
+            id: 5,
+            name: "David Kim",
+            avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+            tasksCompleted: 189,
+            rank: 5
+        },
+        {
+            id: 6,
+            name: "Olivia Taylor",
+            avatar: "https://randomuser.me/api/portraits/women/6.jpg",
+            tasksCompleted: 175,
+            rank: 6
+        },
+        {
+            id: 7,
+            name: "James Wilson",
+            avatar: "https://randomuser.me/api/portraits/men/7.jpg",
+            tasksCompleted: 162,
+            rank: 7
+        },
+        {
+            id: 8,
+            name: "Isabella Martinez",
+            avatar: "https://randomuser.me/api/portraits/women/8.jpg",
+            tasksCompleted: 148,
+            rank: 8
+        },
+        {
+            id: 9,
+            name: "William Brown",
+            avatar: "https://randomuser.me/api/portraits/men/9.jpg",
+            tasksCompleted: 135,
+            rank: 9
+        },
+        {
+            id: 10,
+            name: "Sophia Lee",
+            avatar: "https://randomuser.me/api/portraits/women/10.jpg",
+            tasksCompleted: 122,
+            rank: 10
+        }
+    ];
+
+    const getRankBadge = rank => {
+        const badges = {
+            1: {
+                text: "1st",
+                className: "bg-yellow-100 text-yellow-700 border-yellow-300"
+            },
+            2: {
+                text: "2nd",
+                className: "bg-gray-100 text-gray-600 border-gray-300"
+            },
+            3: {
+                text: "3rd",
+                className: "bg-amber-100 text-amber-700 border-amber-300"
+            }
+        };
+
+        if (rank <= 3) {
+            const badge = badges[rank];
+            return (
+                <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border ${badge.className}`}
+                >
+                    {badge.text}
+                </div>
+            );
+        }
+
+        return (
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-mono font-semibold text-gray-500 bg-gray-100 border border-gray-200">
+                {rank}
+            </div>
+        );
+    };
+
     const fadeInUp = {
         hidden: { opacity: 0, y: 60 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -66,9 +176,13 @@ const Index = () => {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.15 }
+            transition: { staggerChildren: 0.1 }
         }
     };
+
+    // Split data into left (1-5) and right (6-10)
+    const leftColumnData = leaderboardData.slice(0, 5);
+    const rightColumnData = leaderboardData.slice(5, 10);
 
     return (
         <div className="min-h-screen">
@@ -213,6 +327,144 @@ const Index = () => {
                 </div>
             </section>
 
+            {/* Leaderboards Section */}
+            <section className="py-20 px-4 relative bg-bgLight overflow-hidden">
+                {/* Ruled lines background - paper style */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {[...Array(50)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute w-full h-px bg-blue-300/30"
+                            style={{ top: `${i * 32 + 60}px` }}
+                        />
+                    ))}
+                    {/* Left red margin line */}
+                    <div className="absolute top-0 bottom-0 left-32 w-px bg-red-400/30" />
+                    {/* Top red margin line */}
+                    <div className="absolute top-20 left-0 right-0 h-px bg-red-400/30" />
+                    {/* Torn paper edge effect at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-bgLight to-transparent" />
+                </div>
+
+                <div className="container mx-auto max-w-5xl relative z-10">
+                    {/* Header - centered title */}
+                    <div className="text-center mb-6">
+                        <motion.h2
+                            initial={{ opacity: 0, y: -20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="text-4xl font-bold text-secondary font-logo tracking-wide"
+                        >
+                            Leaderboards
+                        </motion.h2>
+                        <div className="w-24 h-0.5 bg-secondary/30 mx-auto mt-2" />
+                    </div>
+
+                    {/* View Leaderboards button with border bottom */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="flex justify-end mb-10"
+                    >
+                        <button
+                            onClick={() => navigate("/leaderboards")}
+                            className="inline-flex items-center gap-2 text-primary hover:text-red-700 font-bold transition-colors group text-md border-b border-primary/30 pb-1"
+                        >
+                            View Leaderboards
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </motion.div>
+
+                    {/* Two column layout - Left: 1-5, Right: 6-10 */}
+                    <div className="grid md:grid-cols-2 gap-x-12 gap-y-6">
+                        {/* Left Column - Ranks 1-5 */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="space-y-4"
+                        >
+                            {leftColumnData.map(user => (
+                                <div
+                                    key={user.id}
+                                    className="flex items-center gap-4 py-2 border-b border-gray-200/50 last:border-0"
+                                >
+                                    {/* Rank Badge */}
+                                    <div className="flex-shrink-0">
+                                        {getRankBadge(user.rank)}
+                                    </div>
+
+                                    {/* Avatar */}
+                                    <img
+                                        src={user.avatar}
+                                        alt={user.name}
+                                        className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200"
+                                    />
+
+                                    {/* Name and Tasks */}
+                                    <div className="flex-1">
+                                        <h3 className="text-secondary font-semibold text-base">
+                                            {user.name}
+                                        </h3>
+                                        <p className="text-primary text-md font-medium">
+                                            {user.tasksCompleted}{" "}
+                                            <span className="text-sm text-secondary font-medium">
+                                                task completed
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </motion.div>
+
+                        {/* Right Column - Ranks 6-10 */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="space-y-4"
+                        >
+                            {rightColumnData.map(user => (
+                                <div
+                                    key={user.id}
+                                    className="flex items-center gap-4 py-2 border-b border-gray-200/50 last:border-0"
+                                >
+                                    {/* Rank Badge */}
+                                    <div className="flex-shrink-0">
+                                        {getRankBadge(user.rank)}
+                                    </div>
+
+                                    {/* Avatar */}
+                                    <img
+                                        src={user.avatar}
+                                        alt={user.name}
+                                        className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200"
+                                    />
+
+                                    {/* Name and Tasks */}
+                                    <div className="flex-1">
+                                        <h3 className="text-secondary font-semibold text-base">
+                                            {user.name}
+                                        </h3>
+                                        <p className="text-primary text-md font-medium">
+                                            {user.tasksCompleted}{" "}
+                                            <span className="text-sm text-secondary font-medium">
+                                                task completed
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+
             {/* CTA Section */}
             <section className="py-20 px-4 bg-primary">
                 <div className="container mx-auto max-w-4xl text-center">
@@ -248,13 +500,13 @@ const Index = () => {
                                 icon={ArrowRight}
                                 className="bg-white text-primary hover:bg-gray-100 mx-auto"
                             >
-                                Create Your First List
+                                Join DoTrack
                             </Button>
                         </Link>
                     </motion.div>
-
                 </div>
             </section>
+            <Footer />
         </div>
     );
 };
