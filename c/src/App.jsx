@@ -6,6 +6,7 @@ import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
 import Dashboard from "@/pages/Dashboard";
 import ToDoList from "@/pages/ToDoList";
+import NewTask from "@/pages/NewTask";
 import Challenges from "@/pages/Challenges";
 import Settings from "@/pages/Settings";
 import ProtectedLayout from "@/components/ProtectedLayout";
@@ -23,12 +24,10 @@ function App() {
                 {/* Protected routes with layout */}
                 <Route element={<ProtectedLayout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/dashboard/todo" element={<ToDoList />} />
-                    <Route
-                        path="/dashboard/challenges"
-                        element={<Challenges />}
-                    />
-                    <Route path="/dashboard/settings" element={<Settings />} />
+                    <Route path="/todo" element={<ToDoList />} />
+                    <Route path="/todo/new" element={<NewTask />} />
+                    <Route path="/challenges" element={<Challenges />} />
+                    <Route path="/settings" element={<Settings />} />
                 </Route>
             </Routes>
         </BrowserRouter>

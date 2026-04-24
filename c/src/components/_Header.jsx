@@ -75,7 +75,7 @@ const Header = () => {
                 <div className="fixed top-[72px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-primary/20 shadow-sm md:hidden">
                     <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
                         <Link to="/coming-soon" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                            <Button variant="outline" icon={Download} className="w-full justify-center">
+                            <Button variant="outline" icon={Smartphone} className="w-full justify-center">
                                 Get the App
                             </Button>
                         </Link>

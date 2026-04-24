@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import TodoListPaper from "@/components/_TodoListPaper";
+import Button from "@/components/_Button";
 
 const ToDoList = () => {
     const navigate = useNavigate();
@@ -13,19 +14,43 @@ const ToDoList = () => {
             id: 1,
             title: "Today's Priorities",
             items: [
-                { id: "t1", text: "Finish project presentation", expiresIn: { value: 24, unit: "hours" } },
-                { id: "t2", text: "Review pull requests", expiresIn: { value: 3, unit: "hours" } },
+                {
+                    id: "t1",
+                    text: "Finish project presentation",
+                    expiresIn: { value: 24, unit: "hours" }
+                },
+                {
+                    id: "t2",
+                    text: "Review pull requests",
+                    expiresIn: { value: 3, unit: "hours" }
+                },
                 { id: "t3", text: "Schedule team meeting", expiresIn: null },
-                { id: "t4", text: "Update documentation", expiresIn: { value: 1, unit: "days" } }
+                {
+                    id: "t4",
+                    text: "Update documentation",
+                    expiresIn: { value: 1, unit: "days" }
+                }
             ]
         },
         {
             id: 2,
             title: "Shopping List",
             items: [
-                { id: "s1", text: "Buy groceries", expiresIn: { value: 3, unit: "hours" } },
-                { id: "s2", text: "Pick up dry cleaning", expiresIn: { value: 5, unit: "hours" } },
-                { id: "s3", text: "Order birthday gift", expiresIn: { value: 2, unit: "days" } },
+                {
+                    id: "s1",
+                    text: "Buy groceries",
+                    expiresIn: { value: 3, unit: "hours" }
+                },
+                {
+                    id: "s2",
+                    text: "Pick up dry cleaning",
+                    expiresIn: { value: 5, unit: "hours" }
+                },
+                {
+                    id: "s3",
+                    text: "Order birthday gift",
+                    expiresIn: { value: 2, unit: "days" }
+                },
                 { id: "s4", text: "Return online order", expiresIn: null }
             ]
         },
@@ -33,10 +58,22 @@ const ToDoList = () => {
             id: 3,
             title: "Weekend Plans",
             items: [
-                { id: "w1", text: "Call mom", expiresIn: { value: 1, unit: "days" } },
-                { id: "w2", text: "Gym workout", expiresIn: { value: 30, unit: "minutes" } },
+                {
+                    id: "w1",
+                    text: "Call mom",
+                    expiresIn: { value: 1, unit: "days" }
+                },
+                {
+                    id: "w2",
+                    text: "Gym workout",
+                    expiresIn: { value: 30, unit: "minutes" }
+                },
                 { id: "w3", text: "Read book chapter", expiresIn: null },
-                { id: "w4", text: "Meal prep for week", expiresIn: { value: 2, unit: "days" } }
+                {
+                    id: "w4",
+                    text: "Meal prep for week",
+                    expiresIn: { value: 2, unit: "days" }
+                }
             ]
         }
     ];
@@ -51,20 +88,23 @@ const ToDoList = () => {
                 {/* Header row */}
                 <div className="flex items-start justify-between mb-2">
                     <div>
-                        <h1 className="text-3xl font-bold text-secondary">ToDo List</h1>
-                        <p className="text-gray-600 mt-1">Stay organized with your tasks</p>
+                        <h1 className="text-3xl font-bold text-secondary">
+                            ToDo List
+                        </h1>
+                        <p className="text-gray-600 mt-1">
+                            Stay organized with your tasks
+                        </p>
                     </div>
 
-                    {/* Add button */}
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => navigate("/dashboard/todo/new")}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white font-semibold text-sm shadow-md hover:bg-red-700 transition-colors"
-                    >
-                        <Plus size={18} />
-                        Add Task
-                    </motion.button>
+                    {/* Desktop Add button - hidden on mobile */}
+                    <div className="hidden md:block">
+                        <Button
+                            icon={Plus}
+                            onClick={() => navigate("/todo/new")}
+                        >
+                            Add Task
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Grid layout for todo papers */}
@@ -74,11 +114,23 @@ const ToDoList = () => {
                             key={list.id}
                             title={list.title}
                             items={list.items}
-                            onItemToggle={itemId => handleItemToggle(list.id, itemId)}
+                            onItemToggle={itemId =>
+                                handleItemToggle(list.id, itemId)
+                            }
                         />
                     ))}
                 </div>
             </div>
+
+            {/* Mobile Floating Action Button - bottom left */}
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate("/todo/new")}
+                className="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white shadow-lg hover:bg-red-700 transition-colors"
+            >
+                <Plus size={24} />
+            </motion.button>
         </div>
     );
 };

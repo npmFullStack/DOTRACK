@@ -7,7 +7,7 @@ export default {
       colors: {
         primary: "#FF0800",
         secondary: "#1B1B1B",
-        bgLight: "#F0F8FF",
+        bgLight: "#fffdf7",
       },
       fontFamily: {
         logo: ['"Fuzzy Bubbles"', "sans-serif"],

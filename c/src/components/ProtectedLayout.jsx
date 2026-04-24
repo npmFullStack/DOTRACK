@@ -43,16 +43,16 @@ const ProtectedLayout = () => {
     const navItems = [
         { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         {
-            path: "/dashboard/todo",
+            path: "/todo",
             icon: CheckSquare,
             label: "ToDo List"
         },
         {
-            path: "/dashboard/challenges",
+            path: "/challenges",
             icon: ListChecks,
             label: "List Challenge"
         },
-        { path: "/dashboard/settings", icon: Settings, label: "Settings" }
+        { path: "/settings", icon: Settings, label: "Settings" }
     ];
 
     const handleNavigation = path => {
@@ -79,7 +79,11 @@ const ProtectedLayout = () => {
             {isMobile && isMobileDrawerOpen && (
                 <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2">
-                        <img src={logoSvg} alt="DoTrack Logo" className="h-6 w-auto" />
+                        <img
+                            src={logoSvg}
+                            alt="DoTrack Logo"
+                            className="h-6 w-auto"
+                        />
                         <div className="font-logo text-2xl tracking-wide font-black">
                             <span className="text-primary">Do</span>
                             <span className="text-secondary">Track</span>
@@ -163,7 +167,11 @@ const ProtectedLayout = () => {
                             <Menu size={24} />
                         </button>
                         {/* Logo with SVG */}
-                        <img src={logoSvg} alt="DoTrack Logo" className="h-7 w-auto" />
+                        <img
+                            src={logoSvg}
+                            alt="DoTrack Logo"
+                            className="h-7 w-auto"
+                        />
                         <div className="font-logo text-2xl tracking-wide font-black">
                             <span className="text-primary">Do</span>
                             <span className="text-secondary">Track</span>
@@ -175,8 +183,8 @@ const ProtectedLayout = () => {
                             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                         {/* User icon with gray background */}
-                        <button className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center transition-colors hover:bg-gray-400">
-                            <User size={15} className="text-gray-900" />
+                        <button className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center transition-colors hover:bg-red-200">
+                            <User size={15} className="text-primary" />
                         </button>
                     </div>
                 </div>
