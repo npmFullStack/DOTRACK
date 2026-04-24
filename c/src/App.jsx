@@ -8,6 +8,8 @@ import Dashboard from "@/pages/Dashboard";
 import ToDoList from "@/pages/ToDoList";
 import NewTask from "@/pages/NewTask";
 import Challenges from "@/pages/Challenges";
+import NewChallenge from "@/pages/NewChallenge";
+import ChallengeDetails from "@/pages/ChallengeDetails";
 import Settings from "@/pages/Settings";
 import ProtectedLayout from "@/components/ProtectedLayout";
 
@@ -27,6 +29,11 @@ function App() {
                     <Route path="/todo" element={<ToDoList />} />
                     <Route path="/todo/new" element={<NewTask />} />
                     <Route path="/challenges" element={<Challenges />} />
+                    <Route path="/challenges/new" element={<NewChallenge />} />
+                    <Route
+                        path="/challenges/:id"
+                        element={<ChallengeDetails />}
+                    />
                     <Route path="/settings" element={<Settings />} />
                 </Route>
             </Routes>
