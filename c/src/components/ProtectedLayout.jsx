@@ -13,6 +13,7 @@ import {
     X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import logoSvg from "@/assets/images/logo.svg";
 
 const ProtectedLayout = () => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -44,7 +45,7 @@ const ProtectedLayout = () => {
         {
             path: "/dashboard/todo",
             icon: CheckSquare,
-            label: "ToDo List Today"
+            label: "ToDo List"
         },
         {
             path: "/dashboard/challenges",
@@ -77,9 +78,12 @@ const ProtectedLayout = () => {
             {/* Logo and close icon for mobile drawer - reduced padding */}
             {isMobile && isMobileDrawerOpen && (
                 <div className="flex items-center justify-between px-4 py-3">
-                    <div className="font-logo text-2xl tracking-wide font-black">
-                        <span className="text-primary">Do</span>
-                        <span className="text-secondary">Track</span>
+                    <div className="flex items-center gap-2">
+                        <img src={logoSvg} alt="DoTrack Logo" className="h-6 w-auto" />
+                        <div className="font-logo text-2xl tracking-wide font-black">
+                            <span className="text-primary">Do</span>
+                            <span className="text-secondary">Track</span>
+                        </div>
                     </div>
                     <button
                         onClick={() => setIsMobileDrawerOpen(false)}
@@ -158,7 +162,8 @@ const ProtectedLayout = () => {
                         >
                             <Menu size={24} />
                         </button>
-                        {/* DoTrack text in header */}
+                        {/* Logo with SVG */}
+                        <img src={logoSvg} alt="DoTrack Logo" className="h-7 w-auto" />
                         <div className="font-logo text-2xl tracking-wide font-black">
                             <span className="text-primary">Do</span>
                             <span className="text-secondary">Track</span>
