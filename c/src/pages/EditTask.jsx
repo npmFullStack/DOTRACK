@@ -1,6 +1,6 @@
-// src/pages/NewTask.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/EditTask.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ArrowLeft,
@@ -12,7 +12,8 @@ import {
     Check,
     FileText,
     ListChecks,
-    Clock
+    Clock,
+    Save
 } from "lucide-react";
 import DateTimePicker from "@/components/_DateTimePicker";
 import Instructions from "@/components/_Instructions";
@@ -20,14 +21,44 @@ import Button from "@/components/_Button";
 import StickyNotesCard from "@/components/_StickyNotesCard";
 import todoService from "@/services/todoService";
 
-const NewTask = () => {
+const EditTask = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const [title, setTitle] = useState("");
     const [taskItems, setTaskItems] = useState([{ id: Date.now(), text: "" }]);
     const [expiresAt, setExpiresAt] = useState(null);
     const [errors, setErrors] = useState({});
     const [showInstructions, setShowInstructions] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
+
+    // Fetch task data on load
+    useEffect(() => {
+        fetchTask();
+    }, [id]);
+
+    const fetchTask = async () => {
+        try {
+            setInitialLoading(true);
+            const response = await todoService.getTask(id);
+            const task = response.task;
+            
+            setTitle(task.title);
+            setExpiresAt(new Date(task.expires_at));
+            
+            // Transform items from backend format
+            const items = task.items.map(item => ({
+                id: item.id,
+                text: item.item_text
+            }));
+            setTaskItems(items);
+        } catch (error) {
+            console.error("Error fetching task:", error);
+            setErrors({ fetch: error.message || "Failed to load task" });
+        } finally {
+            setInitialLoading(false);
+        }
+    };
 
     const addTaskItem = () => {
         setTaskItems([...taskItems, { id: Date.now(), text: "" }]);
@@ -54,8 +85,7 @@ const NewTask = () => {
             newErrors.taskItems = "All task items must have a description";
         }
 
-        if (!expiresAt)
-            newErrors.expiresAt = "Expiration date & time is required";
+        if (!expiresAt) newErrors.expiresAt = "Expiration date & time is required";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -75,14 +105,13 @@ const NewTask = () => {
             // Format expires_at for MySQL (YYYY-MM-DD HH:MM:SS)
             const expires_at = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
             
-            const response = await todoService.createTask(title, items, expires_at);
-            console.log("Task created successfully:", response);
+            await todoService.updateTask(id, title, items, expires_at);
             
             // Navigate back to todo list
             navigate("/todo");
         } catch (error) {
-            console.error("Error creating task:", error);
-            setErrors({ submit: error.message || "Failed to create task. Please try again." });
+            console.error("Error updating task:", error);
+            setErrors({ submit: error.message || "Failed to update task. Please try again." });
         } finally {
             setLoading(false);
         }
@@ -115,6 +144,63 @@ const NewTask = () => {
         }
     ];
 
+    if (initialLoading) {
+        return (
+            <div className="min-h-screen bg-white p-6 rounded-xl">
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center gap-4 mb-8">
+                        <button
+                            onClick={() => navigate("/todo")}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div>
+                            <h1 className="text-3xl font-bold text-secondary">
+                                Edit Task
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="flex justify-center items-center h-64">
+                        <div className="text-gray-500">Loading task...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (errors.fetch) {
+        return (
+            <div className="min-h-screen bg-white p-6 rounded-xl">
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center gap-4 mb-8">
+                        <button
+                            onClick={() => navigate("/todo")}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div>
+                            <h1 className="text-3xl font-bold text-secondary">
+                                Edit Task
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <AlertCircle size={48} className="text-red-500 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                            Failed to load task
+                        </h3>
+                        <p className="text-gray-500 mb-4">{errors.fetch}</p>
+                        <Button onClick={fetchTask}>
+                            Retry
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-white p-4 sm:p-6 rounded-xl">
             <div className="max-w-6xl mx-auto">
@@ -130,10 +216,10 @@ const NewTask = () => {
                     </motion.button>
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-secondary">
-                            Create New Task
+                            Edit Task
                         </h1>
                         <p className="text-sm sm:text-base text-gray-600 mt-0.5 sm:mt-1 hidden sm:block">
-                            Add a new task to your todo list
+                            Update your task details
                         </p>
                     </div>
                 </div>
@@ -282,7 +368,7 @@ const NewTask = () => {
                                 </p>
                             </div>
 
-                            {/* Buttons Section - Below expires field */}
+                            {/* Buttons Section */}
                             <div className="pt-4 border-t border-gray-100">
                                 {/* Desktop buttons */}
                                 <div className="hidden md:flex gap-3 justify-end">
@@ -294,11 +380,11 @@ const NewTask = () => {
                                         Cancel
                                     </Button>
                                     <Button 
-                                        icon={Check}
+                                        icon={Save}
                                         onClick={handleSubmit}
                                         disabled={loading}
                                     >
-                                        {loading ? "Creating..." : "Create Task"}
+                                        {loading ? "Saving..." : "Save Changes"}
                                     </Button>
                                 </div>
 
@@ -317,8 +403,8 @@ const NewTask = () => {
                                         disabled={loading}
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors disabled:opacity-50"
                                     >
-                                        <Plus size={18} />
-                                        {loading ? "Creating..." : "Create Task"}
+                                        <Save size={18} />
+                                        {loading ? "Saving..." : "Save Changes"}
                                     </button>
                                 </div>
                             </div>
@@ -328,7 +414,7 @@ const NewTask = () => {
                     {/* Instructions Section - Desktop */}
                     <div className="hidden lg:block lg:col-span-1">
                         <Instructions
-                            title="How to Create a Task"
+                            title="How to Edit a Task"
                             variant="primary"
                             className="sticky top-6"
                             items={instructionCards}
@@ -348,7 +434,7 @@ const NewTask = () => {
                     <HelpCircle size={22} />
                 </motion.button>
 
-                {/* Mobile Instructions Drawer with StickyNotesCard */}
+                {/* Mobile Instructions Drawer */}
                 <AnimatePresence>
                     {showInstructions && (
                         <>
@@ -369,7 +455,6 @@ const NewTask = () => {
                                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                                 className="fixed bottom-0 left-0 right-0 z-50 bg-gray-50 rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
                             >
-                                {/* Drawer handle */}
                                 <div className="flex justify-center pt-3 pb-2">
                                     <div className="w-12 h-1 bg-gray-300 rounded-full" />
                                 </div>
@@ -377,7 +462,7 @@ const NewTask = () => {
                                 <div className="p-5 pt-2">
                                     <div className="flex items-center gap-2 mb-4 pb-2 border-b border-dashed border-primary">
                                         <HelpCircle size={20} className="text-primary" />
-                                        <h3 className="text-lg font-bold text-gray-800">How to Create a Task</h3>
+                                        <h3 className="text-lg font-bold text-gray-800">How to Edit a Task</h3>
                                     </div>
 
                                     <div className="space-y-4">
@@ -398,9 +483,9 @@ const NewTask = () => {
                                             Pro Tips
                                         </h4>
                                         <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
-                                            <li>Use specific deadlines for better time management</li>
+                                            <li>Update incomplete tasks to stay on track</li>
+                                            <li>Extend expiration time if needed</li>
                                             <li>Break large tasks into smaller subtasks</li>
-                                            <li>Set realistic expiration times</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -413,4 +498,4 @@ const NewTask = () => {
     );
 };
 
-export default NewTask;
+export default EditTask;

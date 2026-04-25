@@ -5,22 +5,35 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Button from "@/components/_Button";
 import { Link, useNavigate } from "react-router-dom";
 import logoSvg from "@/assets/images/logo.svg";
+import authService from "@/services/authService";
 
 const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Navigate to dashboard regardless of input
-        navigate("/dashboard");
+        setError("");
+        setLoading(true);
+
+        try {
+            const response = await authService.signin(email, password);
+            console.log("Login successful:", response);
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "Failed to sign in. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleGoogleSignIn = () => {
-        // Handle Google sign in
-        navigate("/dashboard");
+        // Google sign in - to be implemented
+        console.log("Google sign in");
     };
 
     return (
@@ -46,7 +59,7 @@ const SignIn = () => {
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div
-                            className="flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex items-center justify-center cursor-pointer"
                             onClick={() => navigate("/")}
                         >
                             <img
@@ -65,6 +78,13 @@ const SignIn = () => {
                         </p>
                     </div>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Sign In Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -82,6 +102,7 @@ const SignIn = () => {
                                     onChange={e => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                                     placeholder="you@example.com"
+                                    required
                                 />
                             </div>
                         </div>
@@ -101,6 +122,7 @@ const SignIn = () => {
                                     onChange={e => setPassword(e.target.value)}
                                     className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                                     placeholder="••••••••"
+                                    required
                                 />
                                 <button
                                     type="button"
@@ -131,8 +153,9 @@ const SignIn = () => {
                             type="submit"
                             variant="primary"
                             className="w-full justify-center"
+                            disabled={loading}
                         >
-                            Sign In
+                            {loading ? "Signing in..." : "Sign In"}
                         </Button>
                     </form>
 

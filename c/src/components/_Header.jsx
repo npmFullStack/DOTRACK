@@ -41,7 +41,7 @@ const Header = () => {
                 }`}
             >
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <Link to="/" className="flex items-center gap-2">
+                    <Link to="/" className="flex items-center">
                         <img src={logoSvg} alt="DoTrack Logo" className="h-8 w-auto" />
                         <div className="font-logo text-3xl tracking-wide font-black">
                             <span className="text-primary">Do</span>

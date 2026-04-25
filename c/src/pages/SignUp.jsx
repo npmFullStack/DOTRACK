@@ -5,18 +5,31 @@ import { Mail, Lock, Eye, EyeOff, User, ArrowLeft } from "lucide-react";
 import Button from "@/components/_Button";
 import { Link, useNavigate } from "react-router-dom";
 import logoSvg from "@/assets/images/logo.svg";
+import authService from "@/services/authService";
 
 const SignUp = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Navigate to dashboard regardless of input
-        navigate("/dashboard");
+        setError("");
+        setLoading(true);
+
+        try {
+            const response = await authService.signup(fullName, email, password);
+            console.log("Signup successful:", response);
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "Failed to sign up. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -27,7 +40,7 @@ const SignUp = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     onClick={() => navigate("/")}
-                    className="absolute top-8 left-4 md:left-8 flex items-center gap-2 px-4 py-2 rounded-full  text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="absolute top-8 left-4 md:left-8 flex items-center gap-2 px-4 py-2 rounded-full text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                     <ArrowLeft size={20} />
                     <span>Back to Home</span>
@@ -42,7 +55,7 @@ const SignUp = () => {
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div
-                            className="flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex items-center justify-center cursor-pointer"
                             onClick={() => navigate("/")}
                         >
                             <img
@@ -61,6 +74,13 @@ const SignUp = () => {
                         </p>
                     </div>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Sign Up Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -78,6 +98,7 @@ const SignUp = () => {
                                     onChange={e => setFullName(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                                     placeholder="John Doe"
+                                    required
                                 />
                             </div>
                         </div>
@@ -97,6 +118,7 @@ const SignUp = () => {
                                     onChange={e => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                                     placeholder="you@example.com"
+                                    required
                                 />
                             </div>
                         </div>
@@ -116,6 +138,8 @@ const SignUp = () => {
                                     onChange={e => setPassword(e.target.value)}
                                     className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                                     placeholder="••••••••"
+                                    required
+                                    minLength={6}
                                 />
                                 <button
                                     type="button"
@@ -131,14 +155,18 @@ const SignUp = () => {
                                     )}
                                 </button>
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Password must be at least 6 characters
+                            </p>
                         </div>
 
                         <Button
                             type="submit"
                             variant="primary"
                             className="w-full justify-center"
+                            disabled={loading}
                         >
-                            Sign Up
+                            {loading ? "Signing up..." : "Sign Up"}
                         </Button>
                     </form>
 

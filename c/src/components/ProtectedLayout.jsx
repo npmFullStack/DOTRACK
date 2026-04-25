@@ -1,6 +1,7 @@
 // src/components/ProtectedLayout.jsx
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import authService from "@/services/authService";
 import {
     LayoutDashboard,
     CheckSquare,
@@ -21,6 +22,13 @@ const ProtectedLayout = () => {
     const [isMobile, setIsMobile] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        // Check if user is authenticated
+        if (!authService.isAuthenticated()) {
+            navigate("/signin");
+        }
+    }, [navigate]);
 
     // Check if mobile on mount and window resize
     useEffect(() => {
@@ -78,7 +86,7 @@ const ProtectedLayout = () => {
             {/* Logo and close icon for mobile drawer - reduced padding */}
             {isMobile && isMobileDrawerOpen && (
                 <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                         <img
                             src={logoSvg}
                             alt="DoTrack Logo"
@@ -159,7 +167,7 @@ const ProtectedLayout = () => {
             {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md">
                 <div className="px-4 py-3 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center">
                         <button
                             onClick={handleToggleSidebar}
                             className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-primary"

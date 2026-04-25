@@ -130,7 +130,7 @@ const ComingSoon = () => {
                                 </div>
                                 <StickyNotesCard
                                     title="We appreciate you!"
-                                    description={`Thanks for signing up! We'll notify you at ${email} when the app launches. -Dotrack`}
+                                    description={`Thanks for signing up! We'll notify you at ${email} when the app launches.`}
                                     index={2}
                                 />
                             </motion.div>
