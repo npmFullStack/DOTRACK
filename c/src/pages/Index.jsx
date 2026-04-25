@@ -246,87 +246,87 @@ const Index = () => {
                 </div>
             </section>
 
-            {/* Features Section */}
-            <section className="py-16 px-8 bg-white">
-                <div className="border-[16px] border-amber-700 rounded-sm shadow-2xl mx-auto max-w-6xl">
-                    <div className="border-[6px] border-amber-900 rounded-sm">
-                        <div className="bg-emerald-900 px-10 py-16 relative overflow-hidden rounded-sm">
-                            {/* Chalk residue effect */}
-                            <div className="absolute inset-0 pointer-events-none">
-                                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_20%_30%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_80%_70%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_40%_85%,_white_0%,_transparent_60%),_radial-gradient(ellipse_at_60%_15%,_white_0%,_transparent_50%)]" />
-                                <div className="absolute top-1/4 left-0 w-full h-12 bg-gradient-to-r from-transparent via-white/15 to-transparent blur-sm rotate-3" />
-                                <div className="absolute top-2/3 left-0 w-full h-8 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm -rotate-2" />
-                                <div className="absolute top-10 left-1/4 w-px h-20 bg-white/20 blur-[1px] rotate-12" />
-                                <div className="absolute top-20 left-2/3 w-px h-32 bg-white/15 blur-[1px] -rotate-6" />
-                                <div className="absolute top-32 left-16 w-24 h-16 bg-white/5 rounded-full blur-xl" />
-                                <div className="absolute bottom-20 right-12 w-32 h-20 bg-white/6 rounded-full blur-xl" />
+{/* Features Section */}
+<section className="py-12 px-8 bg-white">
+    <div className="border-[16px] border-amber-700 rounded-sm shadow-2xl mx-auto max-w-6xl">
+        <div className="border-[6px] border-amber-900 rounded-sm">
+            <div className="bg-emerald-900 px-8 py-12 relative overflow-hidden rounded-sm">
+                {/* Chalk residue effect */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_20%_30%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_80%_70%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_40%_85%,_white_0%,_transparent_60%),_radial-gradient(ellipse_at_60%_15%,_white_0%,_transparent_50%)]" />
+                    <div className="absolute top-1/4 left-0 w-full h-12 bg-gradient-to-r from-transparent via-white/15 to-transparent blur-sm rotate-3" />
+                    <div className="absolute top-2/3 left-0 w-full h-8 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm -rotate-2" />
+                    <div className="absolute top-10 left-1/4 w-px h-20 bg-white/20 blur-[1px] rotate-12" />
+                    <div className="absolute top-20 left-2/3 w-px h-32 bg-white/15 blur-[1px] -rotate-6" />
+                    <div className="absolute top-32 left-16 w-24 h-16 bg-white/5 rounded-full blur-xl" />
+                    <div className="absolute bottom-20 right-12 w-32 h-20 bg-white/6 rounded-full blur-xl" />
 
-                                {/* Chalk speckles */}
-                                {[...Array(30)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute bg-white rounded-full"
-                                        style={{
-                                            width: `${Math.random() * 4 + 1}px`,
-                                            height: `${Math.random() * 4 + 1}px`,
-                                            top: `${Math.random() * 100}%`,
-                                            left: `${Math.random() * 100}%`,
-                                            opacity: Math.random() * 0.1 + 0.02
-                                        }}
-                                    />
-                                ))}
-                            </div>
-
-                            <div className="relative z-10">
-                                <motion.div
-                                    className="text-center mb-16"
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6 }}
-                                >
-                                    <h2 className="text-4xl md:text-5xl mb-4 tracking-wide font-bold text-white">
-                                        How{" "}
-                                        <span className="text-green-400">
-                                            DoTrack
-                                        </span>{" "}
-                                        Works?
-                                    </h2>
-                                    <p className="text-lg text-white/70 max-w-2xl mx-auto">
-                                        Simple, effective, and designed to keep
-                                        you on track
-                                    </p>
-                                </motion.div>
-
-                                <motion.div
-                                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14"
-                                    variants={staggerContainer}
-                                    initial="hidden"
-                                    whileInView="visible"
-                                    viewport={{ once: true, margin: "-80px" }}
-                                >
-                                    {features.map((feature, index) => (
-                                        <motion.div
-                                            key={index}
-                                            variants={fadeInUp}
-                                        >
-                                            <StickyNotesCard
-                                                icon={feature.icon}
-                                                title={feature.title}
-                                                description={
-                                                    feature.description
-                                                }
-                                                index={index}
-                                            />
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Chalk speckles */}
+                    {[...Array(20)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute bg-white rounded-full"
+                            style={{
+                                width: `${Math.random() * 3 + 1}px`,
+                                height: `${Math.random() * 3 + 1}px`,
+                                top: `${Math.random() * 100}%`,
+                                left: `${Math.random() * 100}%`,
+                                opacity: Math.random() * 0.1 + 0.02
+                            }}
+                        />
+                    ))}
                 </div>
-            </section>
 
+                <div className="relative z-10">
+                    <motion.div
+                        className="text-center mb-10"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <h2 className="text-3xl md:text-4xl mb-3 tracking-wide font-bold text-white">
+                            How{" "}
+                            <span className="text-green-400">
+                                DoTrack
+                            </span>{" "}
+                            Works?
+                        </h2>
+                        <p className="text-base text-white/70 max-w-2xl mx-auto">
+                            Simple, effective, and designed to keep
+                            you on track
+                        </p>
+                    </motion.div>
+
+                    <motion.div
+                        className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6"
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-80px" }}
+                    >
+                        {features.map((feature, index) => (
+                            <motion.div
+                                key={index}
+                                variants={fadeInUp}
+                                className="flex justify-center"
+                            >
+                                <StickyNotesCard
+                                    icon={feature.icon}
+                                    title={feature.title}
+                                    description={
+                                        feature.description
+                                    }
+                                    index={index}
+                                />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
             {/* Leaderboards Section */}
             <section className="py-20 px-4 relative bg-bgLight overflow-hidden">
                 {/* Ruled lines background - paper style */}

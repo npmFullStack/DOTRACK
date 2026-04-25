@@ -299,25 +299,24 @@ const ChallengeDetails = () => {
                                 />
                             </div>
 
-                            {/* Congratulatory sticky note (top right) */}
-                            <AnimatePresence>
-                                {allCompletedToday && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10, rotate: -2 }}
-                                        animate={{ opacity: 1, y: 0, rotate: -2 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="absolute top-4 right-4 z-20"
-                                    >
-                                        <StickyNotesCard
-                                            icon={CheckCircle2}
-                                            title="All done!"
-                                            description="Great job completing today's tasks"
-                                            index={2}
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+
+{/* Congratulatory sticky note (bottom right) */}
+<AnimatePresence>
+    {allCompletedToday && (
+        <motion.div
+            initial={{ opacity: 0, y: 10, rotate: 2 }}
+            animate={{ opacity: 1, y: 0, rotate: 2 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-4 right-4 z-20"
+        >
+            <StickyNotesCard
+                isExcellent={true}
+                description="All tasks completed today!"
+            />
+        </motion.div>
+    )}
+</AnimatePresence>
 
                             <AnimatePresence mode="wait">
                                 <motion.div

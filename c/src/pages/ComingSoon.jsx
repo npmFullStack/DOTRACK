@@ -5,6 +5,7 @@ import { useState } from "react";
 import Button from "@/components/_Button";
 import Header from "@/components/_Header";
 import StickyNotesCard from "@/components/_StickyNotesCard";
+import stickman from "@/assets/images/stickman.png"; // Import the stickman image
 
 const ComingSoon = () => {
     const [email, setEmail] = useState("");
@@ -71,13 +72,13 @@ const ComingSoon = () => {
 
                     {/* Get notified form OR Thank You Sticky Note */}
                     <motion.div
-                        className="max-w-md mx-auto"
+                        className="max-w-2xl mx-auto"
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                     >
                         {!isSubmitted ? (
-                            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 max-w-md mx-auto">
                                 <div className="flex items-center gap-2 mb-4 justify-center">
                                     <Bell size={18} className="text-primary" />
                                     <h3 className="font-semibold text-gray-800">
@@ -106,6 +107,7 @@ const ComingSoon = () => {
                             </div>
                         ) : (
                             <motion.div
+                                className="flex items-stretch justify-center gap-6"
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{
@@ -114,11 +116,23 @@ const ComingSoon = () => {
                                     damping: 25
                                 }}
                             >
-<StickyNotesCard
-    title="We appreciate you!"
-    description={`Thank you so much for signing up! We're truly grateful for your support. We'll notify you at ${email} the moment the app launches. Stay tuned—great things are ahead!`}
-    index={2}
-/>
+                                <div className="flex items-center">
+                                    <img
+                                        src={stickman}
+                                        alt="Stickman"
+                                        className="h-full max-h-64 w-auto object-contain"
+                                        style={{
+                                            background: "none",
+                                            boxShadow: "none",
+                                            border: "none"
+                                        }}
+                                    />
+                                </div>
+                                <StickyNotesCard
+                                    title="We appreciate you!"
+                                    description={`Thanks for signing up! We'll notify you at ${email} when the app launches. -Dotrack`}
+                                    index={2}
+                                />
                             </motion.div>
                         )}
                     </motion.div>

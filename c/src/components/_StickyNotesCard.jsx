@@ -1,5 +1,6 @@
 // src/components/_StickyNotesCard.jsx
 import { motion } from "framer-motion";
+import { Star } from "lucide-react";
 
 const colorVariants = {
     lime: {
@@ -54,16 +55,80 @@ const colorVariants = {
 
 const colorKeys = ["lime", "pink", "yellow", "sky", "orange", "violet"];
 
-const StickyNotesCard = ({ icon: Icon, title, description, index = 0 }) => {
-    const colorKey = colorKeys[index % colorKeys.length];
+const StickyNotesCard = ({ icon: Icon, title, description, index = 0, isExcellent = false }) => {
+    const colorKey = isExcellent ? "yellow" : colorKeys[index % colorKeys.length];
     const colors = colorVariants[colorKey];
 
     const rotations = [-2.5, 1.8, -1.2, 2.2, -2.0, 1.5];
     const rotation = rotations[index % rotations.length];
+    const tapeRotation = -rotation * 0.4;
+
+    if (isExcellent) {
+        return (
+            <motion.div
+                className="relative flex-shrink-0 w-44"
+                whileHover={{
+                    rotate: 0,
+                    scale: 1.04,
+                    zIndex: 20,
+                    transition: { type: "spring", stiffness: 300, damping: 20 }
+                }}
+                initial={{ rotate: rotation }}
+                animate={{ rotate: rotation }}
+            >
+                {/* Tape strip at top */}
+                <div
+                    className="absolute -top-3 left-1/2 z-10 w-12 h-5 rounded-sm opacity-80"
+                    style={{
+                        background: "rgba(210,180,140,0.45)",
+                        backdropFilter: "blur(1px)",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(180,140,100,0.2)",
+                        backgroundImage: "repeating-linear-gradient(90deg,rgba(255,255,255,0.2) 0px,rgba(255,255,255,0.2) 3px,transparent 3px,transparent 8px)",
+                        transform: `translateX(-50%) rotate(${tapeRotation}deg)`,
+                        borderRadius: "2px"
+                    }}
+                />
+
+                {/* Sticky note body */}
+                <div
+                    className={`relative rounded-sm pt-5 pb-3 px-4 cursor-default select-none border shadow-sm ${colors.bg} ${colors.border}`}
+                    style={{
+                        minHeight: "110px"
+                    }}
+                >
+                    {/* Folded corner bottom-right */}
+                    <div
+                        className="absolute bottom-0 right-0 w-6 h-6"
+                        style={{
+                            background: `linear-gradient(225deg, ${getBorderColor(colors.border)} 50%, ${getBgColor(colors.bg)} 50%)`,
+                            borderRadius: "0 0 2px 0"
+                        }}
+                    />
+
+                    {/* Header row: 5 stars + title */}
+                    <div className="flex items-center justify-between mb-1">
+                        <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} size={14} className="fill-yellow-500 text-yellow-500" />
+                            ))}
+                        </div>
+                        <h3 className={`font-bold text-sm ${colors.text}`}>
+                            Excellent!
+                        </h3>
+                    </div>
+
+                    {/* Description at bottom */}
+                    <p className={`text-xs leading-relaxed mt-2 ${colors.textLight}`}>
+                        {description}
+                    </p>
+                </div>
+            </motion.div>
+        );
+    }
 
     return (
         <motion.div
-            className="relative flex-shrink-0"
+            className="relative flex-shrink-0 w-48"
             whileHover={{
                 rotate: 0,
                 scale: 1.04,
@@ -73,47 +138,45 @@ const StickyNotesCard = ({ icon: Icon, title, description, index = 0 }) => {
             initial={{ rotate: rotation }}
             animate={{ rotate: rotation }}
         >
-            {/* Tape strip at top */}
+            {/* Tape strip at top - matching TodoListPaper style */}
             <div
-                className={`absolute -top-4 left-1/2 z-10 w-10 h-6 rounded-sm opacity-75 ${colors.tape}`}
+                className="absolute -top-3 left-1/2 z-10 w-12 h-5 rounded-sm opacity-80"
                 style={{
-                    transform: `translateX(-50%) rotate(${-rotation * 0.5}deg)`
+                    background: "rgba(210,180,140,0.45)",
+                    backdropFilter: "blur(1px)",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(180,140,100,0.2)",
+                    backgroundImage: "repeating-linear-gradient(90deg,rgba(255,255,255,0.2) 0px,rgba(255,255,255,0.2) 3px,transparent 3px,transparent 8px)",
+                    transform: `translateX(-50%) rotate(${tapeRotation}deg)`,
+                    borderRadius: "2px"
                 }}
             />
 
             {/* Sticky note body */}
             <div
-                className={`relative rounded-sm pt-8 pb-6 px-5 cursor-default select-none border ${colors.bg} ${colors.border}`}
+                className={`relative rounded-sm pt-5 pb-3 px-4 cursor-default select-none border shadow-sm ${colors.bg} ${colors.border}`}
                 style={{
-                    minHeight: "200px",
-                    width: "100%"
+                    minHeight: "110px"
                 }}
             >
                 {/* Folded corner bottom-right */}
                 <div
-                    className="absolute bottom-0 right-0 w-7 h-7"
+                    className="absolute bottom-0 right-0 w-6 h-6"
                     style={{
                         background: `linear-gradient(225deg, ${getBorderColor(colors.border)} 50%, ${getBgColor(colors.bg)} 50%)`,
                         borderRadius: "0 0 2px 0"
                     }}
                 />
 
-                {/* Icon */}
-                <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-opacity-25 ${colors.bg}`}
-                >
-                    {Icon && <Icon size={20} className={colors.pin} />}
+                {/* Header row: icon + title + number (if any) */}
+                <div className="flex items-center gap-2 mb-1">
+                    {Icon && <Icon size={16} className={colors.pin} />}
+                    <h3 className={`font-bold text-sm ${colors.text}`}>
+                        {title}
+                    </h3>
                 </div>
 
-                {/* Title */}
-                <h3
-                    className={`font-bold text-base mb-2 leading-tight ${colors.text}`}
-                >
-                    {title}
-                </h3>
-
-                {/* Description */}
-                <p className={`text-sm leading-relaxed ${colors.textLight}`}>
+                {/* Description at bottom */}
+                <p className={`text-xs leading-relaxed mt-2 ${colors.textLight}`}>
                     {description}
                 </p>
             </div>
