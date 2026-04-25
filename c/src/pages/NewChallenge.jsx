@@ -19,6 +19,7 @@ import Button from "@/components/_Button";
 import Select from "@/components/_Select";
 import StickyNotesCard from "@/components/_StickyNotesCard";
 import Instructions from "@/components/_Instructions";
+import challengeService from "@/services/challengeService";
 
 const colorOptions = {
     lime: { name: "Lime", value: "#d9f99d", accent: "#a3e635" },
@@ -43,6 +44,7 @@ const NewChallenge = () => {
     const [coverColor, setCoverColor] = useState("lime");
     const [errors, setErrors] = useState({});
     const [showInstructions, setShowInstructions] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const durationOptions = [
         { value: 5, label: "5 days" },
@@ -85,26 +87,32 @@ const NewChallenge = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
 
-        const newChallenge = {
-            id: Date.now(),
-            title: title,
-            tasks: challengeItems
+        setLoading(true);
+        
+        try {
+            const tasks = challengeItems
                 .filter(item => item.text.trim())
-                .map(item => item.text),
-            duration: duration,
-            completedTasks: 0,
-            coverColor: coverColor,
-            createdAt: new Date().toISOString()
-        };
-
-        console.log("New challenge created:", newChallenge);
-
-        // Navigate back to challenges list
-        navigate("/challenges");
+                .map(item => item.text.trim());
+            
+            const response = await challengeService.createChallenge(
+                title,
+                tasks,
+                duration,
+                coverColor
+            );
+            
+            console.log("Challenge created successfully:", response);
+            navigate("/challenges");
+        } catch (error) {
+            console.error("Error creating challenge:", error);
+            setErrors({ submit: error.message || "Failed to create challenge. Please try again." });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const instructionCards = [
@@ -174,6 +182,13 @@ const NewChallenge = () => {
                     {/* Form Section */}
                     <div className="lg:col-span-2">
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Submit Error */}
+                            {errors.submit && (
+                                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                                    {errors.submit}
+                                </div>
+                            )}
+
                             {/* Challenge Title Field */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -359,7 +374,6 @@ const NewChallenge = () => {
                                 </p>
                             </div>
 
-
                             {/* Buttons Section */}
                             <div className="pt-4 border-t border-gray-100">
                                 {/* Desktop buttons */}
@@ -367,11 +381,16 @@ const NewChallenge = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() => navigate("/challenges")}
+                                        disabled={loading}
                                     >
                                         Cancel
                                     </Button>
-                                    <Button icon={Check} onClick={handleSubmit}>
-                                        Create Challenge
+                                    <Button 
+                                        icon={Check} 
+                                        onClick={handleSubmit}
+                                        disabled={loading}
+                                    >
+                                        {loading ? "Creating..." : "Create Challenge"}
                                     </Button>
                                 </div>
 
@@ -380,16 +399,18 @@ const NewChallenge = () => {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/challenges")}
-                                        className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                        disabled={loading}
+                                        className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleSubmit}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors"
+                                        disabled={loading}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors disabled:opacity-50"
                                     >
                                         <Plus size={18} />
-                                        Create Challenge
+                                        {loading ? "Creating..." : "Create Challenge"}
                                     </button>
                                 </div>
                             </div>

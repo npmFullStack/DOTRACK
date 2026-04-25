@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import TodoListPaper from "@/components/_TodoListPaper";
 import Button from "@/components/_Button";
 import todoService from "@/services/todoService";
+import createTaskImage from "@/assets/images/createTask.png";
 
 const TodoList = () => {
     const navigate = useNavigate();
@@ -120,15 +121,17 @@ const TodoList = () => {
                         </p>
                     </div>
 
-                    {/* Desktop Add button - hidden on mobile */}
-                    <div className="hidden md:block">
-                        <Button
-                            icon={Plus}
-                            onClick={() => navigate("/todo/new")}
-                        >
-                            Add Task
-                        </Button>
-                    </div>
+                    {/* Desktop Add button - only show when there are tasks */}
+                    {todoLists.length > 0 && (
+                        <div className="hidden md:block">
+                            <Button
+                                icon={Plus}
+                                onClick={() => navigate("/todo/new")}
+                            >
+                                Add Task
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Error Message */}
@@ -147,15 +150,25 @@ const TodoList = () => {
                 {/* Empty State */}
                 {!loading && todoLists.length === 0 && !error && (
                     <div className="flex flex-col items-center justify-center h-64 text-center">
-                        <div className="text-gray-400 mb-4">
-                            <Plus size={48} strokeWidth={1.5} />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                            No tasks yet
-                        </h3>
-                        <p className="text-gray-500 mb-4">
+                        <p className="text-gray-600 mb-3">
                             Create your first task to get started
                         </p>
+
+                        {/* Image with width matching the button - slightly wider than button */}
+                        <div className="mb-1">
+                            <img
+                                src={createTaskImage}
+                                alt="Create Task"
+                                className="w-auto mx-auto"
+                                style={{
+                                    width: "200px",
+                                    maxWidth: "100%",
+                                    height: "auto",
+                                    display: "block"
+                                }}
+                            />
+                        </div>
+
                         <Button
                             icon={Plus}
                             onClick={() => navigate("/todo/new")}
@@ -177,21 +190,23 @@ const TodoList = () => {
                                 handleItemToggle(list.id, itemId, completed)
                             }
                             onEdit={() => handleEditTask(list.id)}
-                            onDelete={() =>handleDeleteTask(list.id)}
+                            onDelete={() => handleDeleteTask(list.id)}
                         />
                     ))}
                 </div>
             </div>
 
-            {/* Mobile Floating Action Button - bottom right */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => navigate("/todo/new")}
-                className="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white shadow-lg hover:bg-red-700 transition-colors"
-            >
-                <Plus size={24} />
-            </motion.button>
+            {/* Mobile Floating Action Button - bottom right, only show when there are tasks */}
+            {todoLists.length > 0 && (
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => navigate("/todo/new")}
+                    className="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white shadow-lg hover:bg-red-700 transition-colors"
+                >
+                    <Plus size={24} />
+                </motion.button>
+            )}
         </div>
     );
 };

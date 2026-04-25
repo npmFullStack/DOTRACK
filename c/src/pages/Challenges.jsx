@@ -1,59 +1,47 @@
 // src/pages/Challenges.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Target } from 'lucide-react';
 import NotebookChallenge from '@/components/_NotebookChallenge';
 import Button from '@/components/_Button';
+import challengeService from '@/services/challengeService';
+import createTaskImage from "@/assets/images/createTask.png";
 
 const Challenges = () => {
     const navigate = useNavigate();
     const [zoomingId, setZoomingId] = useState(null);
+    const [challenges, setChallenges] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const [challenges] = useState([
-        {
-            id: 1,
-            title: "30 Days of Fitness",
-            tasks: [
-                "Do 50 pushups",
-                "Run 5km",
-                "Meditate for 10 minutes",
-                "Drink 3L water",
-                "8 hours of sleep"
-            ],
-            duration: 30,
-            completedTasks: 2,
-            createdAt: "2024-01-01"
-        },
-        {
-            id: 2,
-            title: "Read 5 Books",
-            tasks: [
-                "Finish Atomic Habits",
-                "Read Deep Work",
-                "Complete The Psychology of Money",
-                "Finish Project Hail Mary",
-                "Read The Alchemist"
-            ],
-            duration: 20,
-            completedTasks: 1,
-            createdAt: "2024-01-15"
-        },
-        {
-            id: 3,
-            title: "Learn Coding",
-            tasks: [
-                "Complete React tutorial",
-                "Build a project",
-                "Learn JavaScript",
-                "Study algorithms",
-                "Contribute to open source"
-            ],
-            duration: 30,
-            completedTasks: 0,
-            createdAt: "2024-02-01"
+    useEffect(() => {
+        fetchChallenges();
+    }, []);
+
+    const fetchChallenges = async () => {
+        try {
+            setLoading(true);
+            const response = await challengeService.getChallenges();
+            // Calculate completed tasks count for each challenge
+            const challengesWithProgress = response.challenges.map(challenge => ({
+                id: challenge.id,
+                title: challenge.title,
+                tasks: challenge.tasks || [],
+                duration: challenge.duration,
+                completedTasks: challenge.completed_tasks || 0,
+                createdAt: challenge.created_at,
+                coverColor: challenge.cover_color
+            }));
+            setChallenges(challengesWithProgress);
+            setError('');
+        } catch (err) {
+            console.error("Error fetching challenges:", err);
+            setError(err.message || "Failed to load challenges");
+        } finally {
+            setLoading(false);
         }
-    ]);
+    };
 
     const handleChallengeClick = (challengeId) => {
         if (zoomingId) return;
@@ -63,6 +51,28 @@ const Challenges = () => {
             navigate(`/challenges/${challengeId}`);
         }, 520);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white p-6 rounded-xl">
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold text-secondary mb-2">
+                                Challenges
+                            </h1>
+                            <p className="text-gray-600">
+                                Set personal challenges and track your progress
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex justify-center items-center h-64">
+                        <div className="text-gray-500">Loading challenges...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white p-6 rounded-xl">
@@ -77,19 +87,67 @@ const Challenges = () => {
                             Set personal challenges and track your progress
                         </p>
                     </div>
-                    <div className="hidden md:block">
+
+                    {/* Desktop Add button - only show when there are challenges */}
+                    {challenges.length > 0 && (
+                        <div className="hidden md:block">
+                            <Button
+                                icon={Plus}
+                                onClick={() => navigate("/challenges/new")}
+                            >
+                                Add Challenge
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                        {error}
+                        <button
+                            onClick={fetchChallenges}
+                            className="ml-3 text-red-700 underline hover:no-underline"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {!loading && challenges.length === 0 && !error && (
+                    <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <p className="text-gray-600 mb-3">
+                            Create your first challenge to get started
+                        </p>
+
+                        {/* Image with width matching the button - slightly wider than button */}
+                        <div className="mb-1">
+                            <img
+                                src={createTaskImage}
+                                alt="Create Challenge"
+                                className="w-auto mx-auto"
+                                style={{
+                                    width: "200px",
+                                    maxWidth: "100%",
+                                    height: "auto",
+                                    display: "block"
+                                }}
+                            />
+                        </div>
+
                         <Button
                             icon={Plus}
                             onClick={() => navigate("/challenges/new")}
                         >
-                            Add Challenge
+                            Create Challenge
                         </Button>
                     </div>
-                </div>
+                )}
 
                 {/* Challenges Grid */}
-                {challenges.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-4">
+                {!loading && challenges.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
                         {challenges.map((challenge, index) => (
                             <div
                                 key={challenge.id}
@@ -121,33 +179,11 @@ const Challenges = () => {
                             </div>
                         ))}
                     </div>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-16"
-                    >
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
-                            <Target size={32} className="text-gray-400" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                            No Challenges Yet
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                            Start your first challenge and track your progress
-                        </p>
-                        <Button
-                            icon={Plus}
-                            onClick={() => navigate("/challenges/new")}
-                        >
-                            Create Your First Challenge
-                        </Button>
-                    </motion.div>
                 )}
             </div>
 
-            {/* Mobile FAB */}
-            {challenges.length > 0 && (
+            {/* Mobile FAB - only show when there are challenges */}
+            {!loading && challenges.length > 0 && (
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.96 }}

@@ -2,57 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2, Target, Calendar } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2, Target, Calendar, Lock } from "lucide-react";
 import StickyNotesCard from "@/components/_StickyNotesCard";
-
-// Sample challenge data
-const getChallengeData = id => {
-    const challenges = {
-        1: {
-            id: 1,
-            title: "30 Days of Fitness",
-            tasks: [
-                "Do 50 pushups",
-                "Run 5km",
-                "Meditate for 10 minutes",
-                "Drink 3L water",
-                "8 hours of sleep"
-            ],
-            duration: 30,
-            completedTasks: 2,
-            createdAt: "2024-01-01"
-        },
-        2: {
-            id: 2,
-            title: "Read 5 Books",
-            tasks: [
-                "Finish Atomic Habits",
-                "Read Deep Work",
-                "Complete The Psychology of Money",
-                "Finish Project Hail Mary",
-                "Read The Alchemist"
-            ],
-            duration: 20,
-            completedTasks: 1,
-            createdAt: "2024-01-15"
-        },
-        3: {
-            id: 3,
-            title: "Learn Coding",
-            tasks: [
-                "Complete React tutorial",
-                "Build a project",
-                "Learn JavaScript",
-                "Study algorithms",
-                "Contribute to open source"
-            ],
-            duration: 30,
-            completedTasks: 0,
-            createdAt: "2024-02-01"
-        }
-    };
-    return challenges[id] || challenges[1];
-};
+import challengeService from "@/services/challengeService";
 
 // Paper texture matching TodoListPaper
 const paperStyle = {
@@ -81,48 +33,109 @@ const redMarginStyle = {
 const ChallengeDetails = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const challenge = getChallengeData(id);
-
-    const todayDay = Math.min(
-        challenge.duration,
-        Math.max(
-            1,
-            Math.floor(
-                (new Date() - new Date(challenge.createdAt)) /
-                    (1000 * 60 * 60 * 24)
-            ) + 1
-        )
-    );
-
-    const [currentDay, setCurrentDay] = useState(todayDay);
+    const [challenge, setChallenge] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [currentDay, setCurrentDay] = useState(1);
     const [direction, setDirection] = useState("right");
     const [flipping, setFlipping] = useState(false);
     const [dayTaskState, setDayTaskState] = useState({});
+    const [savingProgress, setSavingProgress] = useState(false);
+    const [maxUnlockedDay, setMaxUnlockedDay] = useState(1);
 
     useEffect(() => {
-        const saved = localStorage.getItem(`challenge_${id}_tasks`);
-        if (saved) {
-            setDayTaskState(JSON.parse(saved));
-        }
+        fetchChallenge();
     }, [id]);
 
-    useEffect(() => {
-        localStorage.setItem(`challenge_${id}_tasks`, JSON.stringify(dayTaskState));
-    }, [id, dayTaskState]);
+    const fetchChallenge = async () => {
+        try {
+            setLoading(true);
+            const response = await challengeService.getChallenge(id);
+            setChallenge(response.challenge);
+            
+            // Calculate current day based on creation date
+            const createdAt = new Date(response.challenge.createdAt);
+            const today = new Date();
+            const daysDiff = Math.floor((today - createdAt) / (1000 * 60 * 60 * 24)) + 1;
+            const calculatedDay = Math.min(response.challenge.duration, Math.max(1, daysDiff));
+            setCurrentDay(calculatedDay);
+            setMaxUnlockedDay(calculatedDay);
+            
+            // Load saved progress
+            if (response.challenge.progress) {
+                setDayTaskState(response.challenge.progress);
+            }
+            
+            setError("");
+        } catch (err) {
+            console.error("Error fetching challenge:", err);
+            setError(err.message || "Failed to load challenge");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const tasksForDay = dayTaskState[currentDay] || {};
-    const completedCount = Object.values(tasksForDay).filter(Boolean).length;
-    const totalTasks = challenge.tasks.length;
-    const allCompletedToday = completedCount === totalTasks && totalTasks > 0;
-
-    const handleTaskToggle = taskIndex => {
+    const handleTaskToggle = async (taskIndex) => {
+        if (!challenge || savingProgress) return;
+        
+        // Only allow toggling tasks on the current day (the day user is viewing)
+        // But they can only toggle tasks if that day is unlocked AND it's not a future day
+        // Actually, they can only toggle tasks on the current day (maxUnlockedDay)
+        // But we want to allow editing past days? Let's restrict to only the max unlocked day
+        if (currentDay !== maxUnlockedDay) return;
+        
+        const newCompleted = !dayTaskState[currentDay]?.[taskIndex];
+        
+        // Optimistically update UI
         setDayTaskState(prev => ({
             ...prev,
             [currentDay]: {
                 ...prev[currentDay],
-                [taskIndex]: !prev[currentDay]?.[taskIndex]
+                [taskIndex]: newCompleted
             }
         }));
+        
+        // Save to backend
+        setSavingProgress(true);
+        try {
+            await challengeService.updateProgress(
+                challenge.id,
+                currentDay,
+                taskIndex,
+                newCompleted
+            );
+            
+            // After saving, check if all tasks are completed and we can unlock next day
+            const updatedTasks = {
+                ...dayTaskState,
+                [currentDay]: {
+                    ...dayTaskState[currentDay],
+                    [taskIndex]: newCompleted
+                }
+            };
+            
+            const currentDayTasks = updatedTasks[currentDay] || {};
+            const completedCount = Object.values(currentDayTasks).filter(Boolean).length;
+            const allCompleted = completedCount === challenge.tasks.length;
+            
+            // If all tasks completed and current day equals maxUnlockedDay and not last day
+            if (allCompleted && currentDay === maxUnlockedDay && currentDay < challenge.duration) {
+                // Unlock next day
+                setMaxUnlockedDay(prev => prev + 1);
+            }
+        } catch (err) {
+            console.error("Error saving progress:", err);
+            // Revert on error
+            setDayTaskState(prev => ({
+                ...prev,
+                [currentDay]: {
+                    ...prev[currentDay],
+                    [taskIndex]: !newCompleted
+                }
+            }));
+        } finally {
+            setSavingProgress(false);
+        }
     };
 
     const goToPrev = () => {
@@ -136,7 +149,8 @@ const ChallengeDetails = () => {
     };
 
     const goToNext = () => {
-        if (currentDay >= todayDay || flipping) return;
+        // Can only go to next day if it's unlocked (<= maxUnlockedDay)
+        if (currentDay >= maxUnlockedDay || flipping) return;
         setFlipping(true);
         setDirection("right");
         setTimeout(() => {
@@ -145,13 +159,79 @@ const ChallengeDetails = () => {
         }, 320);
     };
 
-    const isToday = currentDay === todayDay;
+    const isToday = challenge && currentDay === maxUnlockedDay;
     const isPastFirst = currentDay > 1;
+    const canGoNext = currentDay < maxUnlockedDay;
+    const isFutureLocked = currentDay > maxUnlockedDay;
 
     // Get previous day's stats
     const prevDayTasks = dayTaskState[currentDay - 1] || {};
     const prevCompletedCount = Object.values(prevDayTasks).filter(Boolean).length;
-    const prevMissedCount = totalTasks - prevCompletedCount;
+    const prevMissedCount = challenge ? challenge.tasks.length - prevCompletedCount : 0;
+
+    const tasksForDay = dayTaskState[currentDay] || {};
+    const completedCount = Object.values(tasksForDay).filter(Boolean).length;
+    const totalTasks = challenge?.tasks.length || 0;
+    const allCompletedToday = completedCount === totalTasks && totalTasks > 0;
+    
+    // Check if current day is locked (future day)
+    const isLocked = currentDay > maxUnlockedDay;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white rounded-xl p-6">
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center gap-3 mb-6">
+                        <button
+                            onClick={() => navigate("/challenges")}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-800">
+                                Loading Challenge...
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="flex justify-center items-center h-64">
+                        <div className="text-gray-500">Loading challenge details...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !challenge) {
+        return (
+            <div className="min-h-screen bg-white rounded-xl p-6">
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex items-center gap-3 mb-6">
+                        <button
+                            onClick={() => navigate("/challenges")}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-800">
+                                Error
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="text-center py-16">
+                        <p className="text-red-600 mb-4">{error || "Challenge not found"}</p>
+                        <button
+                            onClick={() => navigate("/challenges")}
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-700"
+                        >
+                            Back to Challenges
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white rounded-xl p-6">
@@ -273,7 +353,7 @@ const ChallengeDetails = () => {
                             </div>
                         </div>
 
-                        {/* RIGHT PAGE - Current day tasks (matching TodoListPaper exactly) */}
+                        {/* RIGHT PAGE - Current day tasks */}
                         <div
                             className="flex-1 relative overflow-hidden"
                             style={{
@@ -299,24 +379,39 @@ const ChallengeDetails = () => {
                                 />
                             </div>
 
+                            {/* Lock overlay for future days */}
+                            {isLocked && (
+                                <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center">
+                                    <Lock size={48} className="text-white mb-3" />
+                                    <p className="text-white font-semibold text-lg">Locked</p>
+                                    <p className="text-white/80 text-sm mt-1">Complete Day {maxUnlockedDay} to unlock</p>
+                                </div>
+                            )}
 
-{/* Congratulatory sticky note (bottom right) */}
-<AnimatePresence>
-    {allCompletedToday && (
-        <motion.div
-            initial={{ opacity: 0, y: 10, rotate: 2 }}
-            animate={{ opacity: 1, y: 0, rotate: 2 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute bottom-4 right-4 z-20"
-        >
-            <StickyNotesCard
-                isExcellent={true}
-                description="All tasks completed today!"
-            />
-        </motion.div>
-    )}
-</AnimatePresence>
+                            {/* Congratulatory sticky note (bottom right) */}
+                            <AnimatePresence>
+                                {allCompletedToday && currentDay === maxUnlockedDay && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, rotate: 2 }}
+                                        animate={{ opacity: 1, y: 0, rotate: 2 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute bottom-4 right-4 z-20"
+                                    >
+                                        <StickyNotesCard
+                                            isExcellent={true}
+                                            description="All tasks completed today!"
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Saving indicator */}
+                            {savingProgress && (
+                                <div className="absolute top-2 right-2 z-20 text-xs text-gray-400">
+                                    Saving...
+                                </div>
+                            )}
 
                             <AnimatePresence mode="wait">
                                 <motion.div
@@ -350,22 +445,27 @@ const ChallengeDetails = () => {
                                             <div className="w-7 flex-shrink-0" />
                                             <h2 className="text-lg font-bold text-gray-800 leading-tight text-center flex-1">
                                                 Day {String(currentDay).padStart(2, "0")}
-                                                {isToday && (
+                                                {isToday && !isLocked && (
                                                     <span className="text-xs font-normal text-gray-400 ml-2">(Today)</span>
+                                                )}
+                                                {isLocked && (
+                                                    <span className="text-xs font-normal text-gray-400 ml-2">(Locked)</span>
                                                 )}
                                             </h2>
                                             <div className="w-7 flex-shrink-0" />
                                         </div>
 
-                                        {/* Task checkboxes - EXACT match to TodoListPaper */}
+                                        {/* Task checkboxes */}
                                         <div className="space-y-3">
                                             {challenge.tasks.map((task, i) => {
                                                 const done = tasksForDay[i] || false;
+                                                const canEdit = !isLocked && currentDay === maxUnlockedDay;
+                                                
                                                 return (
                                                     <div
                                                         key={i}
-                                                        className="flex items-center gap-3 cursor-pointer"
-                                                        onClick={() => handleTaskToggle(i)}
+                                                        className={`flex items-center gap-3 ${canEdit ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                                                        onClick={() => canEdit && handleTaskToggle(i)}
                                                     >
                                                         <div
                                                             className="relative flex-shrink-0 w-5 h-5 rounded border-2 border-secondary flex items-center justify-center"
@@ -387,7 +487,7 @@ const ChallengeDetails = () => {
                                                         </div>
                                                         <span
                                                             className={`text-sm relative leading-none ${
-                                                                done ? "text-gray-400" : "text-gray-700"
+                                                                done ? "text-gray-400" : (isLocked ? "text-gray-400" : "text-gray-700")
                                                             }`}
                                                             style={{ display: "inline-flex", alignItems: "center" }}
                                                         >
@@ -445,15 +545,15 @@ const ChallengeDetails = () => {
                     <div className="absolute inset-y-0 right-0 flex items-center z-20">
                         <button
                             onClick={goToNext}
-                            disabled={isToday || flipping}
+                            disabled={!canGoNext || flipping}
                             className={`flex items-center justify-center w-10 h-10 rounded-l-lg transition-all ${
-                                !isToday && !flipping
+                                canGoNext && !flipping
                                     ? "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
                                     : "bg-gray-300/30 cursor-not-allowed"
                             }`}
                             style={{ marginRight: "-1px" }}
                         >
-                            <ChevronRight size={20} className={!isToday && !flipping ? "text-white" : "text-gray-400"} />
+                            <ChevronRight size={20} className={canGoNext && !flipping ? "text-white" : "text-gray-400"} />
                         </button>
                     </div>
                 </div>
