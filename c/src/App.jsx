@@ -11,6 +11,7 @@ import EditTask from "@/pages/EditTask";
 import Challenges from "@/pages/Challenges";
 import NewChallenge from "@/pages/NewChallenge";
 import ChallengeDetails from "@/pages/ChallengeDetails";
+import EditChallenge from "@/pages/EditChallenge";
 import Settings from "@/pages/Settings";
 import ProtectedLayout from "@/components/ProtectedLayout";
 
@@ -32,10 +33,8 @@ function App() {
                     <Route path="/todo/edit/:id" element={<EditTask />} />
                     <Route path="/challenges" element={<Challenges />} />
                     <Route path="/challenges/new" element={<NewChallenge />} />
-                    <Route
-                        path="/challenges/:id"
-                        element={<ChallengeDetails />}
-                    />
+                    <Route path="/challenges/:id" element={<ChallengeDetails />} />
+                    <Route path="/challenges/:id/edit" element={<EditChallenge />} />
                     <Route path="/settings" element={<Settings />} />
                 </Route>
             </Routes>

@@ -34,16 +34,20 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
 
     // Close picker when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+        const handleClickOutside = event => {
+            if (
+                pickerRef.current &&
+                !pickerRef.current.contains(event.target)
+            ) {
                 setIsOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleDateSelect = (date) => {
+    const handleDateSelect = date => {
         const newDate = new Date(date);
         if (hour && minute && period) {
             let hours = parseInt(hour);
@@ -62,7 +66,7 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
         setIsOpen(false);
     };
 
-    const handleHourChange = (e) => {
+    const handleHourChange = e => {
         let val = e.target.value;
         if (val === "") {
             setHour("");
@@ -74,7 +78,7 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
         }
     };
 
-    const handleMinuteChange = (e) => {
+    const handleMinuteChange = e => {
         let val = e.target.value;
         if (val === "") {
             setMinute("");
@@ -110,7 +114,7 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
         setMinute(next.toString().padStart(2, "0"));
     };
 
-    const formatDisplayDate = (date) => {
+    const formatDisplayDate = date => {
         if (!date) return "";
         return date.toLocaleString("en-US", {
             month: "long",
@@ -118,28 +122,28 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
             year: "numeric",
             hour: "numeric",
             minute: "2-digit",
-            hour12: true,
+            hour12: true
         });
     };
 
     // Generate calendar days
-    const getDaysInMonth = (date) => {
+    const getDaysInMonth = date => {
         const year = date.getFullYear();
         const month = date.getMonth();
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         const days = [];
-        
+
         // Add empty cells for days before month starts
         for (let i = 0; i < firstDay.getDay(); i++) {
             days.push(null);
         }
-        
+
         // Add days of month
         for (let i = 1; i <= lastDay.getDate(); i++) {
             days.push(new Date(year, month, i));
         }
-        
+
         return days;
     };
 
@@ -148,20 +152,24 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
     const [viewMonth, setViewMonth] = useState(currentDate.getMonth());
     const days = getDaysInMonth(new Date(viewYear, viewMonth, 1));
 
-    const isSelectedDate = (day) => {
+    const isSelectedDate = day => {
         if (!selectedDate) return false;
-        return day && 
-               day.getDate() === selectedDate.getDate() &&
-               day.getMonth() === selectedDate.getMonth() &&
-               day.getFullYear() === selectedDate.getFullYear();
+        return (
+            day &&
+            day.getDate() === selectedDate.getDate() &&
+            day.getMonth() === selectedDate.getMonth() &&
+            day.getFullYear() === selectedDate.getFullYear()
+        );
     };
 
-    const isToday = (day) => {
+    const isToday = day => {
         const today = new Date();
-        return day &&
-               day.getDate() === today.getDate() &&
-               day.getMonth() === today.getMonth() &&
-               day.getFullYear() === today.getFullYear();
+        return (
+            day &&
+            day.getDate() === today.getDate() &&
+            day.getMonth() === today.getMonth() &&
+            day.getFullYear() === today.getFullYear()
+        );
     };
 
     // Month options for Select component
@@ -193,32 +201,48 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
         { value: "PM", label: "PM" }
     ];
 
-    const CustomInput = React.forwardRef(({ value, onClick, placeholder }, ref) => (
-        <div className="relative" onClick={onClick} ref={ref}>
-            <div className={`relative flex items-center cursor-pointer ${error ? 'border-red-500' : 'border-gray-300'} border rounded-lg hover:border-red-400 transition-colors group bg-white`}>
-                <div className="absolute left-3 flex items-center gap-1 pointer-events-none">
-                    <Calendar size={18} className="text-gray-400 group-hover:text-red-500 transition-colors" />
-                    <span className="text-gray-300">|</span>
-                    <Clock size={18} className="text-gray-400 group-hover:text-red-500 transition-colors" />
+    const CustomInput = React.forwardRef(
+        ({ value, onClick, placeholder }, ref) => (
+            <div className="relative" onClick={onClick} ref={ref}>
+                <div
+                    className={`relative flex items-center cursor-pointer ${error ? "border-red-500" : "border-gray-300"} border rounded-lg hover:border-red-400 transition-colors group bg-white`}
+                >
+                    <div className="absolute left-3 flex items-center gap-1 pointer-events-none">
+                        <Calendar
+                            size={18}
+                            className="text-gray-400 group-hover:text-red-500 transition-colors"
+                        />
+                        <span className="text-gray-300">|</span>
+                        <Clock
+                            size={18}
+                            className="text-gray-400 group-hover:text-red-500 transition-colors"
+                        />
+                    </div>
+                    <input
+                        type="text"
+                        value={value || ""}
+                        placeholder={placeholder || "Select date and time"}
+                        readOnly
+                        className="w-full pl-24 pr-10 py-2.5 bg-transparent cursor-pointer text-gray-700 focus:outline-none text-sm sm:text-base"
+                    />
+                    <ChevronDown
+                        size={18}
+                        className="absolute right-3 text-gray-400 group-hover:text-red-500 transition-colors pointer-events-none"
+                    />
                 </div>
-                <input
-                    type="text"
-                    value={value || ""}
-                    placeholder={placeholder || "Select date and time"}
-                    readOnly
-                    className="w-full pl-24 pr-10 py-2.5 bg-transparent cursor-pointer text-gray-700 focus:outline-none text-sm sm:text-base"
-                />
-                <ChevronDown size={18} className="absolute right-3 text-gray-400 group-hover:text-red-500 transition-colors pointer-events-none" />
             </div>
-        </div>
-    ));
+        )
+    );
 
-    CustomInput.displayName = 'CustomInput';
+    CustomInput.displayName = "CustomInput";
 
     return (
         <div className={`relative ${className}`} ref={pickerRef}>
             <div onClick={() => setIsOpen(!isOpen)}>
-                <CustomInput value={selectedDate ? formatDisplayDate(selectedDate) : ""} error={error} />
+                <CustomInput
+                    value={selectedDate ? formatDisplayDate(selectedDate) : ""}
+                    error={error}
+                />
             </div>
 
             {isOpen && (
@@ -239,24 +263,27 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                 }}
                                 className="p-1 hover:bg-red-200 rounded-lg transition-colors shrink-0"
                             >
-                                <ChevronDown size={18} className="rotate-90 text-red-600" />
+                                <ChevronDown
+                                    size={18}
+                                    className="rotate-90 text-red-600"
+                                />
                             </button>
-                            
+
                             <div className="flex gap-2 sm:gap-3 flex-1 justify-center">
                                 <Select
                                     options={monthOptions}
                                     value={viewMonth}
-                                    onChange={(val) => setViewMonth(val)}
+                                    onChange={val => setViewMonth(val)}
                                     className="flex-1 min-w-0"
                                 />
                                 <Select
                                     options={yearOptions}
                                     value={viewYear}
-                                    onChange={(val) => setViewYear(val)}
+                                    onChange={val => setViewYear(val)}
                                     className="w-20 sm:w-24"
                                 />
                             </div>
-                            
+
                             <button
                                 onClick={() => {
                                     let newMonth = viewMonth + 1;
@@ -270,7 +297,10 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                 }}
                                 className="p-1 hover:bg-red-200 rounded-lg transition-colors shrink-0"
                             >
-                                <ChevronDown size={18} className="-rotate-90 text-red-600" />
+                                <ChevronDown
+                                    size={18}
+                                    className="-rotate-90 text-red-600"
+                                />
                             </button>
                         </div>
                     </div>
@@ -278,7 +308,10 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                     {/* Weekday headers */}
                     <div className="grid grid-cols-7 gap-0.5 sm:gap-1 p-2 sm:p-3 pb-0">
                         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(day => (
-                            <div key={day} className="text-center text-[11px] sm:text-xs font-medium text-gray-500 py-1 sm:py-2">
+                            <div
+                                key={day}
+                                className="text-center text-[11px] sm:text-xs font-medium text-gray-500 py-1 sm:py-2"
+                            >
                                 {day}
                             </div>
                         ))}
@@ -293,10 +326,10 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                 disabled={!day}
                                 className={`
                                     p-1.5 sm:p-2 text-xs sm:text-sm rounded-lg transition-all
-                                    ${!day ? 'invisible' : ''}
-                                    ${isSelectedDate(day) ? 'bg-red-500 text-white shadow-md' : ''}
-                                    ${isToday(day) && !isSelectedDate(day) ? 'border-2 border-red-300 text-red-600 font-semibold' : ''}
-                                    ${day && !isSelectedDate(day) ? 'hover:bg-red-50 text-gray-700' : ''}
+                                    ${!day ? "invisible" : ""}
+                                    ${isSelectedDate(day) ? "bg-red-500 text-white shadow-md" : ""}
+                                    ${isToday(day) && !isSelectedDate(day) ? "border-2 border-red-300 text-red-600 font-semibold" : ""}
+                                    ${day && !isSelectedDate(day) ? "hover:bg-red-50 text-gray-700" : ""}
                                 `}
                             >
                                 {day?.getDate()}
@@ -309,7 +342,7 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                         <label className="block text-xs sm:text-sm font-medium text-red-600 mb-2 sm:mb-3">
                             Select Time
                         </label>
-                        
+
                         <div className="flex flex-col gap-3 sm:gap-4">
                             {/* Time inputs row */}
                             <div className="flex items-center justify-center gap-2 sm:gap-3">
@@ -329,20 +362,28 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                             onClick={incrementHour}
                                             className="p-0.5 hover:bg-red-100 rounded"
                                         >
-                                            <ChevronUp size={10} className="text-red-500 sm:w-3 sm:h-3" />
+                                            <ChevronUp
+                                                size={10}
+                                                className="text-red-500 sm:w-3 sm:h-3"
+                                            />
                                         </button>
                                         <button
                                             type="button"
                                             onClick={decrementHour}
                                             className="p-0.5 hover:bg-red-100 rounded"
                                         >
-                                            <ChevronDown size={10} className="text-red-500 sm:w-3 sm:h-3" />
+                                            <ChevronDown
+                                                size={10}
+                                                className="text-red-500 sm:w-3 sm:h-3"
+                                            />
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <span className="text-lg sm:text-xl font-medium text-red-400">:</span>
-                                
+
+                                <span className="text-lg sm:text-xl font-medium text-red-400">
+                                    :
+                                </span>
+
                                 <div className="relative flex-1 max-w-[100px] sm:max-w-[120px]">
                                     <input
                                         type="number"
@@ -359,18 +400,24 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                             onClick={incrementMinute}
                                             className="p-0.5 hover:bg-red-100 rounded"
                                         >
-                                            <ChevronUp size={10} className="text-red-500 sm:w-3 sm:h-3" />
+                                            <ChevronUp
+                                                size={10}
+                                                className="text-red-500 sm:w-3 sm:h-3"
+                                            />
                                         </button>
                                         <button
                                             type="button"
                                             onClick={decrementMinute}
                                             className="p-0.5 hover:bg-red-100 rounded"
                                         >
-                                            <ChevronDown size={10} className="text-red-500 sm:w-3 sm:h-3" />
+                                            <ChevronDown
+                                                size={10}
+                                                className="text-red-500 sm:w-3 sm:h-3"
+                                            />
                                         </button>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex-1 max-w-[90px] sm:max-w-[100px]">
                                     <Select
                                         options={periodOptions}
@@ -380,7 +427,7 @@ const DateTimePicker = ({ value, onChange, className = "", error = false }) => {
                                     />
                                 </div>
                             </div>
-                            
+
                             {/* Action buttons */}
                             <div className="flex gap-2 sm:gap-3 pt-2">
                                 <button
