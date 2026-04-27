@@ -14,7 +14,6 @@ export async function initDatabase() {
             password: process.env.DB_PASSWORD,
             port: process.env.DB_PORT || 3306,
             ssl: {
-                // For Aiven, we need to reject unauthorized = false for free tier
                 rejectUnauthorized: false
             }
         });
@@ -143,4 +142,5 @@ export function getDB() {
     return pool;
 }
 
-export default { initDatabase, getDB };
+// Export pool as default for routes
+export default pool;
