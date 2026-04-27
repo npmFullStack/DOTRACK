@@ -3,25 +3,43 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+let pool = null;
 
 export async function initDatabase() {
     try {
-        const connection = await pool.getConnection();
+        // Create initial connection without database (with SSL)
+        const connection = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            port: process.env.DB_PORT || 3306,
+            ssl: {
+                // For Aiven, we need to reject unauthorized = false for free tier
+                rejectUnauthorized: false
+            }
+        });
         
+        // Create database if it doesn't exist
         await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
         await connection.query(`USE ${process.env.DB_NAME}`);
         
+        // Now create the main pool with SSL
+        pool = mysql.createPool({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            port: process.env.DB_PORT || 3306,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0,
+            ssl: {
+                rejectUnauthorized: false
+            }
+        });
+        
         // Users table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 fullname VARCHAR(255) NOT NULL,
@@ -33,7 +51,7 @@ export async function initDatabase() {
         `);
         
         // Challenges table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS challenges (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 user_id INT NOT NULL,
@@ -46,7 +64,7 @@ export async function initDatabase() {
         `);
         
         // Challenge tasks table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS challenge_tasks (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 challenge_id INT NOT NULL,
@@ -57,7 +75,7 @@ export async function initDatabase() {
         `);
         
         // Challenge progress table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS challenge_progress (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 challenge_id INT NOT NULL,
@@ -73,7 +91,7 @@ export async function initDatabase() {
         `);
         
         // Todo tasks table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS todo_tasks (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 user_id INT NOT NULL,
@@ -85,7 +103,7 @@ export async function initDatabase() {
         `);
         
         // Todo items table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS todo_items (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 todo_task_id INT NOT NULL,
@@ -98,7 +116,7 @@ export async function initDatabase() {
         `);
         
         // User stats table
-        await connection.query(`
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS user_stats (
                 user_id INT PRIMARY KEY,
                 total_tasks_completed INT DEFAULT 0,
@@ -109,11 +127,20 @@ export async function initDatabase() {
             )
         `);
         
-        connection.release();
+        connection.end();
         console.log('Database initialized successfully');
+        return pool;
     } catch (error) {
         console.error('Database initialization error:', error);
+        throw error;
     }
 }
 
-export default pool;
+export function getDB() {
+    if (!pool) {
+        throw new Error('Database not initialized. Call initDatabase() first.');
+    }
+    return pool;
+}
+
+export default { initDatabase, getDB };

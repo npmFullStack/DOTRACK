@@ -36,12 +36,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message || 'Something went wrong!' });
 });
 
-// Start server
+// Start server with better error handling
 async function startServer() {
-    await initDatabase();
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+    try {
+        await initDatabase();
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+            console.log(`Database host: ${process.env.DB_HOST}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
 }
 
 startServer();
