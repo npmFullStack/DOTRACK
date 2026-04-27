@@ -25,12 +25,22 @@ const ProtectedLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    useEffect(() => {
-        // Check if user is authenticated
-        if (!authService.isAuthenticated()) {
+    // Inside ProtectedLayout.jsx, update the useEffect:
+
+useEffect(() => {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+        const isAuthenticated = authService.isAuthenticated();
+        console.log('ProtectedLayout - Is authenticated:', isAuthenticated);
+        
+        if (!isAuthenticated) {
+            console.log('Not authenticated, redirecting to signin');
             navigate("/signin");
         }
-    }, [navigate]);
+    };
+    
+    checkAuth();
+}, [navigate]);
 
     // Check if mobile on mount and window resize
     useEffect(() => {

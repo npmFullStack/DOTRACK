@@ -1,25 +1,32 @@
 // src/services/authService.js
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Remove /api from here since your .env already includes it
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const authService = {
   // Sign Up
   signup: async (fullname, email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/signup`, {
+      const response = await axios.post(`${API_URL}/api/auth/signup`, {
         fullname,
         email,
         password
       });
       
+      console.log('Signup response:', response.data); // Debug log
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        console.log('Token saved to localStorage'); // Debug log
+      } else {
+        console.error('No token in response:', response.data);
       }
       
       return response.data;
     } catch (error) {
+      console.error('Signup error:', error.response?.data || error);
       throw error.response?.data || { message: 'Network error occurred' };
     }
   },
@@ -27,18 +34,24 @@ const authService = {
   // Sign In
   signin: async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/signin`, {
+      const response = await axios.post(`${API_URL}/api/auth/signin`, {
         email,
         password
       });
       
+      console.log('Signin response:', response.data); // Debug log
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        console.log('Token saved to localStorage'); // Debug log
+      } else {
+        console.error('No token in response:', response.data);
       }
       
       return response.data;
     } catch (error) {
+      console.error('Signin error:', error.response?.data || error);
       throw error.response?.data || { message: 'Network error occurred' };
     }
   },
@@ -51,7 +64,7 @@ const authService = {
         throw new Error('No token found');
       }
       
-      const response = await axios.get(`${API_URL}/auth/me`, {
+      const response = await axios.get(`${API_URL}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -59,6 +72,7 @@ const authService = {
       
       return response.data;
     } catch (error) {
+      console.error('Get user error:', error.response?.data || error);
       throw error.response?.data || { message: 'Failed to get user' };
     }
   },
@@ -67,7 +81,7 @@ const authService = {
   uploadProfileImage: async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/auth/upload-image`, formData, {
+      const response = await axios.post(`${API_URL}/api/auth/upload-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -94,7 +108,9 @@ const authService = {
 
   // Check if user is authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('Checking auth, token exists:', !!token); // Debug log
+    return !!token;
   },
 
   // Get token
