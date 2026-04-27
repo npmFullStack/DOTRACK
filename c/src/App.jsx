@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
+import Leaderboards from "@/pages/Leaderboards";
 import ComingSoon from "@/pages/ComingSoon";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
@@ -21,6 +22,7 @@ function App() {
             <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Index />} />
+                <Route path="/leaderboards" element={<Leaderboards />} />
                 <Route path="/coming-soon" element={<ComingSoon />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />

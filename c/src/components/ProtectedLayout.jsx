@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import authService from "@/services/authService";
+import WarningModal from "@/components/WarningModal";
 import {
     LayoutDashboard,
     CheckSquare,
@@ -20,6 +21,7 @@ const ProtectedLayout = () => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -67,9 +69,18 @@ const ProtectedLayout = () => {
         navigate(path);
     };
 
-    const handleLogout = () => {
-        // Add your logout logic here
+    const handleLogoutClick = () => {
+        setShowLogoutModal(true);
+    };
+
+    const handleConfirmLogout = () => {
+        authService.logout();
+        setShowLogoutModal(false);
         navigate("/signin");
+    };
+
+    const handleCancelLogout = () => {
+        setShowLogoutModal(false);
     };
 
     const handleToggleSidebar = () => {
@@ -143,7 +154,7 @@ const ProtectedLayout = () => {
 
             <div className="p-4 border-t border-primary/20">
                 <button
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     className={`
             w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
             text-red-600 hover:bg-red-50
@@ -255,6 +266,15 @@ const ProtectedLayout = () => {
                     <Outlet />
                 </div>
             </main>
+
+            {/* Logout Warning Modal */}
+            <WarningModal
+                isOpen={showLogoutModal}
+                title="Logout"
+                image="/src/assets/images/warning.png"
+                onConfirm={handleConfirmLogout}
+                onCancel={handleCancelLogout}
+            />
         </div>
     );
 };
