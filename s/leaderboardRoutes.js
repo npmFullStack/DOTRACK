@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from './db.js';
+import { getDB } from './db.js';
 import { verifyToken } from './authRoutes.js';
 
 const router = express.Router();
@@ -8,12 +8,13 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
+        const pool = getDB();
         
         const [leaderboard] = await pool.query(
-            `SELECT u.id, u.fullname, u.image, us.total_tasks_completed as tasks_completed
-             FROM user_stats us
-             JOIN users u ON us.user_id = u.id
-             ORDER BY us.total_tasks_completed DESC
+            `SELECT u.id, u.fullname, u.image, COALESCE(us.total_tasks_completed, 0) as tasks_completed
+             FROM users u
+             LEFT JOIN user_stats us ON u.id = us.user_id
+             ORDER BY tasks_completed DESC
              LIMIT ?`,
             [limit]
         );
@@ -25,7 +26,7 @@ router.get('/', async (req, res) => {
         
         res.json({ leaderboard: rankedLeaderboard });
     } catch (error) {
-        console.error(error);
+        console.error('Leaderboard error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -34,13 +35,14 @@ router.get('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
+        const pool = getDB();
         
         const [stats] = await pool.query(
-            `SELECT u.id, u.fullname, u.image, us.total_tasks_completed as tasks_completed,
-                    us.total_challenges_completed as challenges_completed,
-                    us.current_streak
-             FROM user_stats us
-             JOIN users u ON us.user_id = u.id
+            `SELECT u.id, u.fullname, u.image, COALESCE(us.total_tasks_completed, 0) as tasks_completed,
+                    COALESCE(us.total_challenges_completed, 0) as challenges_completed,
+                    COALESCE(us.current_streak, 0) as current_streak
+             FROM users u
+             LEFT JOIN user_stats us ON u.id = us.user_id
              WHERE u.id = ?`,
             [userId]
         );
@@ -52,7 +54,7 @@ router.get('/user/:userId', async (req, res) => {
         const [rankResult] = await pool.query(
             `SELECT COUNT(*) + 1 as rank
              FROM user_stats
-             WHERE total_tasks_completed > (SELECT total_tasks_completed FROM user_stats WHERE user_id = ?)`,
+             WHERE total_tasks_completed > (SELECT COALESCE(total_tasks_completed, 0) FROM user_stats WHERE user_id = ?)`,
             [userId]
         );
         
@@ -61,7 +63,7 @@ router.get('/user/:userId', async (req, res) => {
             rank: rankResult[0].rank
         });
     } catch (error) {
-        console.error(error);
+        console.error('User stats error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -69,6 +71,7 @@ router.get('/user/:userId', async (req, res) => {
 // GET dashboard stats for logged in user
 router.get('/dashboard/stats', verifyToken, async (req, res) => {
     try {
+        const pool = getDB();
         const [stats] = await pool.query(
             'SELECT * FROM user_stats WHERE user_id = ?',
             [req.userId]
@@ -82,19 +85,18 @@ router.get('/dashboard/stats', verifyToken, async (req, res) => {
         const [pendingTasks] = await pool.query(
             `SELECT COUNT(DISTINCT t.id) as count 
              FROM todo_tasks t
-             LEFT JOIN todo_items ti ON t.id = ti.todo_task_id AND ti.completed = FALSE
-             WHERE t.user_id = ? AND t.expires_at > NOW()
-             GROUP BY t.id`,
+             LEFT JOIN todo_items ti ON t.id = ti.todo_task_id 
+             WHERE t.user_id = ? AND t.expires_at > NOW() AND (ti.completed = FALSE OR ti.completed IS NULL)`,
             [req.userId]
         );
         
         res.json({
             stats: stats[0] || { total_tasks_completed: 0, total_challenges_completed: 0, current_streak: 0 },
             activeChallenges: challenges[0]?.count || 0,
-            pendingTasks: pendingTasks.length || 0
+            pendingTasks: pendingTasks[0]?.count || 0
         });
     } catch (error) {
-        console.error(error);
+        console.error('Dashboard stats error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

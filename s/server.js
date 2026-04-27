@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import pool, { initDatabase } from './db.js';
+import { initDatabase } from './db.js';
 import authRoutes from './authRoutes.js';
 import challengeRoutes from './challengeRoutes.js';
 import taskRoutes from './taskRoutes.js';

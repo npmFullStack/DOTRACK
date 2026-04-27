@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from './db.js';
+import { getDB } from './db.js';
 import { verifyToken } from './authRoutes.js';
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 // GET all todo tasks
 router.get('/', verifyToken, async (req, res) => {
     try {
+        const pool = getDB();
         const [tasks] = await pool.query(
             `SELECT t.* FROM todo_tasks t
              WHERE t.user_id = ?
@@ -33,6 +34,7 @@ router.get('/', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
     try {
         const { title, items, expires_at } = req.body;
+        const pool = getDB();
         
         if (!title || !items || items.length === 0 || !expires_at) {
             return res.status(400).json({ message: 'Title, items, and expiration date are required' });
@@ -79,6 +81,7 @@ router.patch('/:taskId/items/:itemId', verifyToken, async (req, res) => {
     try {
         const { taskId, itemId } = req.params;
         const { completed } = req.body;
+        const pool = getDB();
         
         const [tasks] = await pool.query(
             'SELECT id FROM todo_tasks WHERE id = ? AND user_id = ?',
@@ -114,6 +117,7 @@ router.patch('/:taskId/items/:itemId', verifyToken, async (req, res) => {
 router.get('/:id', verifyToken, async (req, res) => {
     try {
         const taskId = req.params.id;
+        const pool = getDB();
         
         const [tasks] = await pool.query(
             'SELECT * FROM todo_tasks WHERE id = ? AND user_id = ?',
@@ -145,6 +149,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     try {
         const taskId = req.params.id;
         const { title, items, expires_at } = req.body;
+        const pool = getDB();
         
         if (!title || !items || items.length === 0 || !expires_at) {
             return res.status(400).json({ message: 'Title, items, and expiration date are required' });
@@ -203,6 +208,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const taskId = req.params.id;
+        const pool = getDB();
         
         const [result] = await pool.query(
             'DELETE FROM todo_tasks WHERE id = ? AND user_id = ?',

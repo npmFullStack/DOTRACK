@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from './db.js';
+import { getDB } from './db.js';
 import { verifyToken } from './authRoutes.js';
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 // GET all challenges for user
 router.get('/', verifyToken, async (req, res) => {
     try {
+        const pool = getDB();
         const [challenges] = await pool.query(
             `SELECT c.*, 
                     COUNT(DISTINCT cp.id) as completed_tasks
@@ -38,6 +39,7 @@ router.get('/', verifyToken, async (req, res) => {
 router.get('/:id', verifyToken, async (req, res) => {
     try {
         const challengeId = req.params.id;
+        const pool = getDB();
         
         const [challenges] = await pool.query(
             'SELECT * FROM challenges WHERE id = ? AND user_id = ?',
@@ -89,6 +91,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
     try {
         const { title, duration, cover_color, tasks } = req.body;
+        const pool = getDB();
         
         if (!title || !duration || !tasks || tasks.length === 0) {
             return res.status(400).json({ message: 'Title, duration, and tasks are required' });
@@ -135,6 +138,7 @@ router.put('/:id/progress', verifyToken, async (req, res) => {
     try {
         const challengeId = req.params.id;
         const { day_number, task_index, completed } = req.body;
+        const pool = getDB();
         
         const [challenges] = await pool.query(
             'SELECT id, duration FROM challenges WHERE id = ? AND user_id = ?',
@@ -174,6 +178,7 @@ router.put('/:id/progress', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const challengeId = req.params.id;
+        const pool = getDB();
         
         const [result] = await pool.query(
             'DELETE FROM challenges WHERE id = ? AND user_id = ?',

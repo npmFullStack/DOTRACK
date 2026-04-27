@@ -5,7 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import pool from './db.js';
+import { getDB } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +64,7 @@ export const verifyToken = (req, res, next) => {
 router.post('/signup', async (req, res) => {
     try {
         const { fullname, email, password } = req.body;
+        const pool = getDB();
         
         if (!fullname || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
@@ -108,6 +109,7 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body;
+        const pool = getDB();
         
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
@@ -146,6 +148,7 @@ router.post('/signin', async (req, res) => {
 // GET CURRENT USER
 router.get('/me', verifyToken, async (req, res) => {
     try {
+        const pool = getDB();
         const [users] = await pool.query(
             'SELECT id, fullname, email, image, created_at FROM users WHERE id = ?',
             [req.userId]
@@ -165,6 +168,7 @@ router.get('/me', verifyToken, async (req, res) => {
 // UPLOAD PROFILE IMAGE
 router.post('/upload-image', verifyToken, upload.single('image'), async (req, res) => {
     try {
+        const pool = getDB();
         if (!req.file) {
             return res.status(400).json({ message: 'No image file uploaded' });
         }
