@@ -1,6 +1,7 @@
 // src/components/WarningModal.jsx
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./_Button";
+import warning from "@/assets/images/warning.png"
 
 const WarningModal = ({ isOpen, title, image, onConfirm, onCancel }) => {
     return (
@@ -30,7 +31,7 @@ const WarningModal = ({ isOpen, title, image, onConfirm, onCancel }) => {
                                 {image && (
                                     <div className="flex justify-center mb-4">
                                         <img 
-                                            src={image} 
+                                            src={warning} 
                                             alt="Warning" 
                                             className="w-20 h-20 object-contain"
                                         />
