@@ -1,7 +1,7 @@
 // src/services/challengeService.js
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Add auth token to requests
 const getAuthConfig = () => {
@@ -17,7 +17,7 @@ const challengeService = {
     // Get all challenges for the current user
     getChallenges: async () => {
         try {
-            const response = await axios.get(`${API_URL}/challenges`, getAuthConfig());
+            const response = await axios.get(`${API_URL}/api/challenges`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch challenges' };
@@ -27,7 +27,7 @@ const challengeService = {
     // Get single challenge by ID
     getChallenge: async (challengeId) => {
         try {
-            const response = await axios.get(`${API_URL}/challenges/${challengeId}`, getAuthConfig());
+            const response = await axios.get(`${API_URL}/api/challenges/${challengeId}`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch challenge' };
@@ -37,7 +37,7 @@ const challengeService = {
     // Create a new challenge
     createChallenge: async (title, tasks, duration, coverColor) => {
         try {
-            const response = await axios.post(`${API_URL}/challenges`, {
+            const response = await axios.post(`${API_URL}/api/challenges`, {
                 title,
                 tasks,
                 duration,
@@ -52,7 +52,7 @@ const challengeService = {
     // Update challenge progress for a specific day and task
     updateProgress: async (challengeId, dayNumber, taskIndex, completed) => {
         try {
-            const response = await axios.put(`${API_URL}/challenges/${challengeId}/progress`, {
+            const response = await axios.put(`${API_URL}/api/challenges/${challengeId}/progress`, {
                 day_number: dayNumber,
                 task_index: taskIndex,
                 completed
@@ -66,7 +66,7 @@ const challengeService = {
     // Delete a challenge
     deleteChallenge: async (challengeId) => {
         try {
-            const response = await axios.delete(`${API_URL}/challenges/${challengeId}`, getAuthConfig());
+            const response = await axios.delete(`${API_URL}/api/challenges/${challengeId}`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to delete challenge' };

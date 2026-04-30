@@ -1,7 +1,6 @@
 // src/services/authService.js
 import axios from 'axios';
 
-// Remove /api from here since your .env already includes it
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const authService = {
@@ -14,14 +13,9 @@ const authService = {
         password
       });
       
-      console.log('Signup response:', response.data); // Debug log
-      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        console.log('Token saved to localStorage'); // Debug log
-      } else {
-        console.error('No token in response:', response.data);
       }
       
       return response.data;
@@ -39,14 +33,9 @@ const authService = {
         password
       });
       
-      console.log('Signin response:', response.data); // Debug log
-      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        console.log('Token saved to localStorage'); // Debug log
-      } else {
-        console.error('No token in response:', response.data);
       }
       
       return response.data;
@@ -109,7 +98,6 @@ const authService = {
   // Check if user is authenticated
   isAuthenticated: () => {
     const token = localStorage.getItem('token');
-    console.log('Checking auth, token exists:', !!token); // Debug log
     return !!token;
   },
 

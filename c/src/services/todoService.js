@@ -1,7 +1,7 @@
 // src/services/todoService.js
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Add auth token to requests
 const getAuthConfig = () => {
@@ -17,7 +17,7 @@ const todoService = {
     // Get all todo tasks for the current user
     getTasks: async () => {
         try {
-            const response = await axios.get(`${API_URL}/tasks`, getAuthConfig());
+            const response = await axios.get(`${API_URL}/api/tasks`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch tasks' };
@@ -27,7 +27,7 @@ const todoService = {
     // Get single task by ID
     getTask: async (taskId) => {
         try {
-            const response = await axios.get(`${API_URL}/tasks/${taskId}`, getAuthConfig());
+            const response = await axios.get(`${API_URL}/api/tasks/${taskId}`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch task' };
@@ -37,7 +37,7 @@ const todoService = {
     // Create a new todo task
     createTask: async (title, items, expiresAt) => {
         try {
-            const response = await axios.post(`${API_URL}/tasks`, {
+            const response = await axios.post(`${API_URL}/api/tasks`, {
                 title,
                 items,
                 expires_at: expiresAt
@@ -51,7 +51,7 @@ const todoService = {
     // Update an existing task
     updateTask: async (taskId, title, items, expiresAt) => {
         try {
-            const response = await axios.put(`${API_URL}/tasks/${taskId}`, {
+            const response = await axios.put(`${API_URL}/api/tasks/${taskId}`, {
                 title,
                 items,
                 expires_at: expiresAt
@@ -65,7 +65,7 @@ const todoService = {
     // Toggle item completion status
     toggleItem: async (taskId, itemId, completed) => {
         try {
-            const response = await axios.patch(`${API_URL}/tasks/${taskId}/items/${itemId}`, {
+            const response = await axios.patch(`${API_URL}/api/tasks/${taskId}/items/${itemId}`, {
                 completed
             }, getAuthConfig());
             return response.data;
@@ -77,7 +77,7 @@ const todoService = {
     // Delete a todo task
     deleteTask: async (taskId) => {
         try {
-            const response = await axios.delete(`${API_URL}/tasks/${taskId}`, getAuthConfig());
+            const response = await axios.delete(`${API_URL}/api/tasks/${taskId}`, getAuthConfig());
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to delete task' };
