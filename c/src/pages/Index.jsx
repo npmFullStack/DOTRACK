@@ -17,9 +17,6 @@ import {
     Zap,
     Trophy
 } from "lucide-react";
-import todoService from "@/services/todoService";
-import challengeService from "@/services/challengeService";
-import leaderboardService from "@/services/leaderboardService";
 
 const Index = () => {
     const navigate = useNavigate();

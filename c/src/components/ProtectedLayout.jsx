@@ -1,7 +1,8 @@
 // src/components/ProtectedLayout.jsx
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import authService from "@/services/authService";
+import toast from "react-hot-toast";
+import { supabase } from "@/config/supabase";
 import WarningModal from "@/components/WarningModal";
 import {
     LayoutDashboard,
@@ -16,31 +17,67 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoSvg from "@/assets/images/logo.svg";
+import warning from "@/assets/images/warning.png"
+
 
 const ProtectedLayout = () => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Inside ProtectedLayout.jsx, update the useEffect:
+    // Check authentication on mount
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const {
+                    data: { session },
+                    error
+                } = await supabase.auth.getSession();
 
-useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-        const isAuthenticated = authService.isAuthenticated();
-        console.log('ProtectedLayout - Is authenticated:', isAuthenticated);
-        
-        if (!isAuthenticated) {
-            console.log('Not authenticated, redirecting to signin');
-            navigate("/signin");
-        }
-    };
-    
-    checkAuth();
-}, [navigate]);
+                if (error) {
+                    console.error("Auth error:", error);
+                    toast.error("Authentication error. Please sign in again.");
+                    navigate("/signin");
+                    return;
+                }
+
+                if (!session) {
+                    console.log("No session found, redirecting to signin");
+                    toast.error("Please sign in to access this page");
+                    navigate("/signin");
+                    return;
+                }
+
+                setUser(session.user);
+                setLoading(false);
+            } catch (err) {
+                console.error("Check auth error:", err);
+                toast.error("Something went wrong. Please try again.");
+                navigate("/signin");
+            }
+        };
+
+        checkAuth();
+
+        // Listen for auth changes
+        const {
+            data: { subscription }
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!session) {
+                toast.error("Session expired. Please sign in again.");
+                navigate("/signin");
+            } else {
+                setUser(session.user);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [navigate]);
 
     // Check if mobile on mount and window resize
     useEffect(() => {
@@ -62,16 +99,8 @@ useEffect(() => {
 
     const navItems = [
         { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        {
-            path: "/todo",
-            icon: CheckSquare,
-            label: "ToDo List"
-        },
-        {
-            path: "/challenges",
-            icon: ListChecks,
-            label: "List Challenge"
-        },
+        { path: "/todo", icon: CheckSquare, label: "ToDo List" },
+        { path: "/challenges", icon: ListChecks, label: "List Challenge" },
         { path: "/settings", icon: Settings, label: "Settings" }
     ];
 
@@ -83,10 +112,18 @@ useEffect(() => {
         setShowLogoutModal(true);
     };
 
-    const handleConfirmLogout = () => {
-        authService.logout();
-        setShowLogoutModal(false);
-        navigate("/signin");
+    const handleConfirmLogout = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+
+            toast.success("Successfully logged out!");
+            setShowLogoutModal(false);
+            navigate("/signin");
+        } catch (err) {
+            console.error("Logout error:", err);
+            toast.error("Failed to log out. Please try again.");
+        }
     };
 
     const handleCancelLogout = () => {
@@ -100,6 +137,23 @@ useEffect(() => {
             setIsSidebarExpanded(!isSidebarExpanded);
         }
     };
+
+    // Show loading spinner while checking auth
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // If no user, don't render (redirect will happen)
+    if (!user) {
+        return null;
+    }
 
     // Sidebar content to be used in both desktop and mobile
     const SidebarContent = () => (
@@ -281,7 +335,7 @@ useEffect(() => {
             <WarningModal
                 isOpen={showLogoutModal}
                 title="Logout"
-                image="/src/assets/images/warning.png"
+                image={warning}
                 onConfirm={handleConfirmLogout}
                 onCancel={handleCancelLogout}
             />

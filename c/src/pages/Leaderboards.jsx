@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import leaderboardService from "@/services/leaderboardService";
 
 const Leaderboards = () => {
     const navigate = useNavigate();
