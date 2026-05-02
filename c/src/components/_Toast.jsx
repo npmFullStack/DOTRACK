@@ -8,6 +8,7 @@ import {
     Info,
     AlertTriangle
 } from "lucide-react";
+import { useCallback } from "react";
 
 if (typeof document !== "undefined" && !document.getElementById("_toast-kf")) {
     const s = document.createElement("style");
@@ -81,10 +82,19 @@ const ToastCard = ({
     type,
     icon: customIcon,
     onDismiss,
-    duration
+    duration,
+    id
 }) => {
     const { Icon, accent, border } = CFG[type] || CFG.default;
     const isLoading = type === "loading";
+
+    const handleDismiss = useCallback((e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (onDismiss && typeof onDismiss === 'function') {
+            onDismiss(id);
+        }
+    }, [onDismiss, id]);
 
     return (
         <motion.div
@@ -148,11 +158,9 @@ const ToastCard = ({
             {/* Dismiss */}
             {!isLoading && (
                 <button
-                    onClick={e => {
-                        e.stopPropagation();
-                        onDismiss();
-                    }}
+                    onClick={handleDismiss}
                     aria-label="Close"
+                    type="button"
                     style={{
                         position: "absolute",
                         top: "50%",
@@ -189,7 +197,7 @@ const ToastCard = ({
             )}
 
             {/* Drain bar */}
-            {!isLoading && duration !== Infinity && (
+            {!isLoading && duration !== Infinity && duration !== 0 && (
                 <div
                     style={{
                         position: "absolute",
@@ -232,21 +240,22 @@ export const Toaster = () => (
             }
         }}
     >
-        {t => (
+        {(t) => (
             <AnimatePresence mode="wait">
                 {t.visible && (
                     <ToastCard
                         key={t.id}
+                        id={t.id}
                         message={typeof t.message === "string" ? t.message : ""}
                         type={t.type}
                         icon={t.icon}
-                        onDismiss={() => t.dismiss(t.id)}
+                        onDismiss={t.dismiss}
                         duration={
                             t.type === "success"
                                 ? 3000
                                 : t.type === "error"
                                   ? 5000
-                                  : 4000
+                                  : t.duration
                         }
                     />
                 )}

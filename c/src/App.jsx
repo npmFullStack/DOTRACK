@@ -7,6 +7,9 @@ import ComingSoon from "@/pages/ComingSoon";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
 import Dashboard from "@/pages/Dashboard";
+import TodoList from "@/pages/TodoList";
+import NewTask from "@/pages/NewTask";
+import EditTask from "@/pages/EditTask";
 import ProtectedLayout from "@/components/ProtectedLayout";
 
 function App() {
@@ -25,9 +28,10 @@ function App() {
                 {/* Protected routes with layout */}
                 <Route element={<ProtectedLayout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
-                    {/* <Route path="/todo" element={<TodoList />} />
+                    <Route path="/todo" element={<TodoList />} />
                     <Route path="/todo/new" element={<NewTask />} />
                     <Route path="/todo/edit/:id" element={<EditTask />} />
+                    {/* 
                     <Route path="/challenges" element={<Challenges />} />
                     <Route path="/challenges/new" element={<NewChallenge />} />
                     <Route path="/challenges/:id" element={<ChallengeDetails />} />

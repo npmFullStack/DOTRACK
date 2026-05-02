@@ -7,6 +7,7 @@ const TodoListPaper = ({
     id,
     title,
     items = [],
+    expiresIn = null,
     onItemToggle,
     onEdit,
     onDelete,
@@ -18,8 +19,6 @@ const TodoListPaper = ({
     const [showExcellentNote, setShowExcellentNote] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Only seed checkedItems from props on first mount — never again —
-    // so re-renders triggered by the Excellent note don't reset checked state.
     const initializedRef = useRef(false);
     useEffect(() => {
         if (!initializedRef.current) {
@@ -47,8 +46,6 @@ const TodoListPaper = ({
         if (onItemToggle) onItemToggle(itemId, !completed);
     };
 
-    // Start animation immediately — call onDelete only after fall completes
-    // so the parent never unmounts this component mid-animation.
     const handleRemove = () => {
         if (isDeleting) return;
         setMenuOpen(false);
@@ -62,12 +59,8 @@ const TodoListPaper = ({
     };
 
     const getEarliestExpiration = () => {
-        const withExpiry = items.filter(i => i.expiresIn);
-        if (!withExpiry.length) return null;
-        const toMins = ({ value, unit }) =>
-            unit === "minutes" ? value : unit === "hours" ? value * 60 : value * 1440;
-        const sorted = [...withExpiry].sort((a, b) => toMins(a.expiresIn) - toMins(b.expiresIn));
-        const { value, unit } = sorted[0].expiresIn;
+        if (!expiresIn) return null;
+        const { value, unit } = expiresIn;
         if (unit === "minutes") return `${value}min${value > 1 ? "s" : ""}`;
         if (unit === "hours") return `${value}hr${value > 1 ? "s" : ""}`;
         if (unit === "days") return `${value} day${value > 1 ? "s" : ""}`;
@@ -79,10 +72,7 @@ const TodoListPaper = ({
     const isDone = phase === "done";
 
     return (
-        // Outer wrapper — never unmounted so tape persists until parent removes it
         <div className={`relative ${className}`}>
-
-            {/* ── Scotch tape — always visible, even after cut (until parent removes card) ── */}
             <div className="absolute -top-3 left-5 z-30 pointer-events-none">
                 <div style={{
                     width: "52px", height: "22px", borderRadius: "2px",
@@ -94,9 +84,6 @@ const TodoListPaper = ({
                 }} />
             </div>
 
-            {/* ── ··· Menu button + dropdown ──
-                Lives OUTSIDE the overflow:hidden card so it never gets clipped,
-                and buttons get explicit #ffffff background so they're always white. ── */}
             {!isDone && (
                 <div className="absolute top-9 right-5 z-50">
                     <button
@@ -148,16 +135,13 @@ const TodoListPaper = ({
                 </div>
             )}
 
-            {/* ── Paper card — overflow:hidden always, so ruled lines never bleed out ── */}
             <div
                 className="relative bg-bgLight overflow-hidden"
                 style={{
                     borderRadius: "4px",
-                    // Clip to just the header stub once cutting starts
                     height: phase !== "idle" ? `${CUT_Y}px` : undefined,
                 }}
             >
-                {/* Ruled lines — safely contained by overflow:hidden */}
                 <div className="absolute inset-0 pointer-events-none">
                     {[...Array(20)].map((_, i) => (
                         <div key={i} className="absolute w-full h-px bg-blue-200/40"
@@ -166,22 +150,17 @@ const TodoListPaper = ({
                     <div className="absolute top-0 bottom-0 left-10 w-px bg-red-300/40" />
                 </div>
 
-                {/* Content */}
                 <div className="relative z-10 pt-5 pb-16 px-5">
-                    {/* Dashed divider */}
                     <div className="border-t border-dashed border-primary mb-3" />
 
-                    {/* Title row — right spacer mirrors left spacer to keep title centered */}
                     <div className="flex items-center justify-between mb-3">
                         <div className="w-7 flex-shrink-0" />
                         <h2 className="text-lg font-bold text-gray-800 leading-tight text-center flex-1">
                             "{title}"
                         </h2>
-                        {/* This spacer reserves room for the menu button which now lives outside */}
                         <div className="w-7 flex-shrink-0" />
                     </div>
 
-                    {/* Todo items */}
                     <div className="space-y-3">
                         {items.map(item => (
                             <div
@@ -232,7 +211,6 @@ const TodoListPaper = ({
                     </div>
                 </div>
 
-                {/* Bottom: Excellent note + Expires */}
                 <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between z-10">
                     <AnimatePresence>
                         {showExcellentNote && (
@@ -262,7 +240,6 @@ const TodoListPaper = ({
                 </div>
             </div>
 
-            {/* ── Cutting line ── */}
             <AnimatePresence>
                 {phase === "cutting" && (
                     <motion.div
@@ -280,7 +257,6 @@ const TodoListPaper = ({
                 )}
             </AnimatePresence>
 
-            {/* ── Falling piece ── */}
             <AnimatePresence>
                 {phase === "falling" && (
                     <motion.div

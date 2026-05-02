@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import TodoListPaper from "@/components/_TodoListPaper";
 import Button from "@/components/_Button";
-import todoService from "@/services/todoService";
+import taskService from "@/services/taskService";
 import createTaskImage from "@/assets/images/createTask.png";
 
 const TodoList = () => {
@@ -14,7 +14,6 @@ const TodoList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Fetch tasks from backend
     useEffect(() => {
         fetchTasks();
     }, []);
@@ -22,18 +21,32 @@ const TodoList = () => {
     const fetchTasks = async () => {
         try {
             setLoading(true);
-            const response = await todoService.getTasks();
-            // Transform backend data to match component format
-            const formattedTasks = response.tasks.map(task => ({
-                id: task.id,
-                title: task.title,
-                items: task.items.map(item => ({
-                    id: item.id,
-                    text: item.item_text,
-                    completed: item.completed === 1,
-                    expiresIn: todoService.formatExpiration(task.expires_at)
-                }))
-            }));
+            const tasks = await taskService.getTasks();
+
+            const formattedTasks = tasks.map(task => {
+                let expiresIn = null;
+                const expiryString = taskService.formatExpiration(task.expires_at);
+                
+                if (expiryString && expiryString !== 'Expired') {
+                    const match = expiryString.match(/(\d+)([mhd])/);
+                    if (match) {
+                        const value = parseInt(match[1]);
+                        const unit = match[2] === 'm' ? 'minutes' : match[2] === 'h' ? 'hours' : 'days';
+                        expiresIn = { value, unit };
+                    }
+                }
+                
+                return {
+                    id: task.id,
+                    title: task.title,
+                    expiresIn: expiresIn,
+                    items: task.task_items.map(item => ({
+                        id: item.id,
+                        text: item.item_text,
+                        completed: item.completed === true
+                    }))
+                };
+            });
             setTodoLists(formattedTasks);
             setError("");
         } catch (err) {
@@ -46,8 +59,8 @@ const TodoList = () => {
 
     const handleItemToggle = async (listId, itemId, completed) => {
         try {
-            await todoService.toggleItem(listId, itemId, !completed);
-            // Update local state
+            await taskService.toggleItem(itemId, !completed);
+
             setTodoLists(prevLists =>
                 prevLists.map(list =>
                     list.id === listId
@@ -74,8 +87,7 @@ const TodoList = () => {
 
     const handleDeleteTask = async taskId => {
         try {
-            await todoService.deleteTask(taskId);
-            // Remove task from local state
+            await taskService.deleteTask(taskId);
             setTodoLists(prevLists =>
                 prevLists.filter(list => list.id !== taskId)
             );
@@ -110,7 +122,6 @@ const TodoList = () => {
     return (
         <div className="min-h-screen bg-white p-6 rounded-xl">
             <div className="max-w-6xl mx-auto">
-                {/* Header row */}
                 <div className="flex items-start justify-between mb-2">
                     <div>
                         <h1 className="text-3xl font-bold text-secondary">
@@ -121,7 +132,6 @@ const TodoList = () => {
                         </p>
                     </div>
 
-                    {/* Desktop Add button - only show when there are tasks */}
                     {todoLists.length > 0 && (
                         <div className="hidden md:block">
                             <Button
@@ -134,7 +144,6 @@ const TodoList = () => {
                     )}
                 </div>
 
-                {/* Error Message */}
                 {error && (
                     <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                         {error}
@@ -147,14 +156,11 @@ const TodoList = () => {
                     </div>
                 )}
 
-                {/* Empty State */}
                 {!loading && todoLists.length === 0 && !error && (
                     <div className="flex flex-col items-center justify-center h-64 text-center">
                         <p className="text-gray-600 mb-3">
                             Create your first task to get started
                         </p>
-
-                        {/* Image with width matching the button - slightly wider than button */}
                         <div className="mb-1">
                             <img
                                 src={createTaskImage}
@@ -168,7 +174,6 @@ const TodoList = () => {
                                 }}
                             />
                         </div>
-
                         <Button
                             icon={Plus}
                             onClick={() => navigate("/todo/new")}
@@ -178,7 +183,6 @@ const TodoList = () => {
                     </div>
                 )}
 
-                {/* Grid layout for todo papers */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
                     {todoLists.map(list => (
                         <TodoListPaper
@@ -186,6 +190,7 @@ const TodoList = () => {
                             id={list.id}
                             title={list.title}
                             items={list.items}
+                            expiresIn={list.expiresIn}
                             onItemToggle={(itemId, completed) =>
                                 handleItemToggle(list.id, itemId, completed)
                             }
@@ -196,7 +201,6 @@ const TodoList = () => {
                 </div>
             </div>
 
-            {/* Mobile Floating Action Button - bottom right, only show when there are tasks */}
             {todoLists.length > 0 && (
                 <motion.button
                     whileHover={{ scale: 1.05 }}

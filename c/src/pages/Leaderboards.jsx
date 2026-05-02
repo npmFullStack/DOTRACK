@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/config/supabase";
+import leaderboardService from "@/services/leaderboardService";
 
 const Leaderboards = () => {
     const navigate = useNavigate();
@@ -11,17 +13,15 @@ const Leaderboards = () => {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // Helper function to get initials from fullname
-    const getInitials = fullname => {
-        if (!fullname) return "??";
-        const names = fullname.trim().split(" ");
+    const getInitials = full_name => {
+        if (!full_name) return "??";
+        const names = full_name.trim().split(" ");
         if (names.length === 1) return names[0].charAt(0).toUpperCase();
         return (
             names[0].charAt(0) + names[names.length - 1].charAt(0)
         ).toUpperCase();
     };
 
-    // Helper function to get gradient color based on rank
     const getAvatarGradient = rank => {
         const gradients = {
             1: "from-yellow-400 to-yellow-600",
@@ -31,7 +31,6 @@ const Leaderboards = () => {
         return gradients[rank] || "from-primary to-primary/70";
     };
 
-    // Get rank display text
     const getRankDisplay = rank => {
         if (rank === 1) return "1st";
         if (rank === 2) return "2nd";
@@ -40,26 +39,22 @@ const Leaderboards = () => {
     };
 
     useEffect(() => {
-        const fetchLeaderboard = async () => {
+        const fetchAll = async () => {
             try {
                 setLoading(true);
-                const response = await leaderboardService.getLeaderboard(100);
-                if (response && response.leaderboard) {
-                    setLeaderboardData(response.leaderboard);
-                }
 
-                // Check if user is logged in via localStorage
-                const token = localStorage.getItem("token");
-                const userStr = localStorage.getItem("user");
+                // Fetch leaderboard data
+                const data = await leaderboardService.getLeaderboard(100);
+                setLeaderboardData(data);
 
-                if (token && userStr) {
+                // Check Supabase auth session
+                const {
+                    data: { user }
+                } = await supabase.auth.getUser();
+
+                if (user) {
                     setIsLoggedIn(true);
-                    try {
-                        const user = JSON.parse(userStr);
-                        setCurrentUserId(user.id);
-                    } catch (e) {
-                        console.error("Failed to parse user", e);
-                    }
+                    setCurrentUserId(user.id);
                 } else {
                     setIsLoggedIn(false);
                     setCurrentUserId(null);
@@ -72,24 +67,24 @@ const Leaderboards = () => {
             }
         };
 
-        fetchLeaderboard();
+        fetchAll();
     }, []);
 
-    // Avatar Component
     const UserAvatar = ({ user, rank }) => {
-        const initials = getInitials(user.fullname);
+        const initials = getInitials(user.full_name);
 
-        if (user.image) {
+        if (user.avatar) {
             return (
                 <img
-                    src={user.image}
-                    alt={user.fullname}
+                    src={user.avatar}
+                    alt={user.full_name}
                     className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
                     onError={e => {
                         e.target.style.display = "none";
-                        e.target.parentElement.querySelector(
+                        const fallback = e.target.parentElement?.querySelector(
                             ".initials-avatar"
-                        ).style.display = "flex";
+                        );
+                        if (fallback) fallback.style.display = "flex";
                     }}
                 />
             );
@@ -106,7 +101,7 @@ const Leaderboards = () => {
 
     return (
         <div className="min-h-screen bg-bgLight relative overflow-hidden">
-            {/* Ruled lines background - paper style */}
+            {/* Ruled lines background */}
             <div className="absolute inset-0 pointer-events-none">
                 {[...Array(50)].map((_, i) => (
                     <div
@@ -120,7 +115,7 @@ const Leaderboards = () => {
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-bgLight to-transparent" />
             </div>
 
-            {/* Back Button - transparent no shadow */}
+            {/* Back Button */}
             <motion.button
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -136,24 +131,21 @@ const Leaderboards = () => {
                 {/* Loading State */}
                 {loading && (
                     <div className="flex justify-center items-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
                     </div>
                 )}
 
-                {/* Green Chalkboard with Leaderboards inside */}
+                {/* Chalkboard */}
                 {!loading && (
                     <div className="relative max-w-4xl mx-auto">
-                        {/* Chalkboard Frame */}
                         <div className="border-[16px] border-amber-700 rounded-sm shadow-2xl">
                             <div className="border-[6px] border-amber-900 rounded-sm">
                                 <div className="bg-emerald-900 px-6 py-8 relative overflow-hidden rounded-sm min-h-[500px]">
-                                    {/* Chalk residue effect */}
+                                    {/* Chalk texture */}
                                     <div className="absolute inset-0 pointer-events-none">
                                         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_20%_30%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_80%_70%,_white_0%,_transparent_50%)]" />
                                         <div className="absolute top-1/4 left-0 w-full h-12 bg-gradient-to-r from-transparent via-white/15 to-transparent blur-sm rotate-3" />
                                         <div className="absolute top-2/3 left-0 w-full h-8 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm -rotate-2" />
-
-                                        {/* Chalk speckles */}
                                         {[...Array(30)].map((_, i) => (
                                             <div
                                                 key={i}
@@ -171,7 +163,7 @@ const Leaderboards = () => {
                                         ))}
                                     </div>
 
-                                    {/* Title inside greenboard */}
+                                    {/* Title */}
                                     <div className="relative z-10 text-center mb-6">
                                         <h1 className="text-4xl md:text-5xl font-bold text-white font-logo tracking-wide drop-shadow-lg">
                                             Leaderboards
@@ -179,9 +171,9 @@ const Leaderboards = () => {
                                         <div className="w-24 h-0.5 bg-white/30 mx-auto mt-2" />
                                     </div>
 
-                                    {/* Scrollable Rankings Area */}
+                                    {/* Rankings */}
                                     <div className="relative z-10 max-h-[450px] overflow-y-auto custom-scrollbar">
-                                        {/* Column Headers - same bg as content, no white highlight */}
+                                        {/* Column headers */}
                                         <div className="grid grid-cols-12 gap-4 pb-3 mb-3 border-b border-white/20 sticky top-0 bg-emerald-900">
                                             <div className="col-span-3 text-white/70 text-sm font-medium">
                                                 Rank
@@ -194,95 +186,91 @@ const Leaderboards = () => {
                                             </div>
                                         </div>
 
-                                        {/* Rankings List */}
+                                        {/* Rows */}
                                         <div className="space-y-3">
                                             {leaderboardData.length > 0 ? (
                                                 leaderboardData.map(
-                                                    (user, index) => {
-                                                        const taskCount =
-                                                            user.tasks_completed ||
-                                                            user.tasksCompleted ||
-                                                            0;
-                                                        return (
-                                                            <motion.div
-                                                                key={user.id}
-                                                                initial={{
-                                                                    opacity: 0,
-                                                                    x: -20
-                                                                }}
-                                                                animate={{
-                                                                    opacity: 1,
-                                                                    x: 0
-                                                                }}
-                                                                transition={{
-                                                                    duration: 0.3,
-                                                                    delay: Math.min(
-                                                                        index *
-                                                                            0.01,
-                                                                        0.5
-                                                                    )
-                                                                }}
-                                                                className="grid grid-cols-12 gap-4 items-center py-2 border-b border-white/10"
-                                                            >
-                                                                {/* Rank */}
-                                                                <div className="col-span-3">
-                                                                    <span className="text-white text-base font-medium">
-                                                                        {getRankDisplay(
-                                                                            user.rank
+                                                    (user, index) => (
+                                                        <motion.div
+                                                            key={user.user_id}
+                                                            initial={{
+                                                                opacity: 0,
+                                                                x: -20
+                                                            }}
+                                                            animate={{
+                                                                opacity: 1,
+                                                                x: 0
+                                                            }}
+                                                            transition={{
+                                                                duration: 0.3,
+                                                                delay: Math.min(
+                                                                    index * 0.01,
+                                                                    0.5
+                                                                )
+                                                            }}
+                                                            className="grid grid-cols-12 gap-4 items-center py-2 border-b border-white/10"
+                                                        >
+                                                            {/* Rank */}
+                                                            <div className="col-span-3">
+                                                                <span className="text-white text-base font-medium">
+                                                                    {getRankDisplay(
+                                                                        user.rank
+                                                                    )}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Avatar + Name */}
+                                                            <div className="col-span-7 flex items-center gap-3">
+                                                                <UserAvatar
+                                                                    user={user}
+                                                                    rank={
+                                                                        user.rank
+                                                                    }
+                                                                />
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="text-white text-base">
+                                                                        {
+                                                                            user.full_name
+                                                                        }
+                                                                    </span>
+                                                                    {isLoggedIn &&
+                                                                        currentUserId &&
+                                                                        user.user_id ===
+                                                                            currentUserId && (
+                                                                            <span className="text-xs bg-white/20 text-white/80 px-2 py-0.5 rounded-full">
+                                                                                You
+                                                                            </span>
                                                                         )}
-                                                                    </span>
                                                                 </div>
+                                                            </div>
 
-                                                                {/* Name with Avatar and (You) tag - only shows if logged in AND matches current user */}
-                                                                <div className="col-span-7 flex items-center gap-3">
-                                                                    <UserAvatar
-                                                                        user={
-                                                                            user
-                                                                        }
-                                                                        rank={
-                                                                            user.rank
-                                                                        }
-                                                                    />
-                                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                                        <span className="text-white text-base">
-                                                                            {
-                                                                                user.fullname
-                                                                            }
-                                                                        </span>
-                                                                        {isLoggedIn &&
-                                                                            currentUserId &&
-                                                                            user.id ===
-                                                                                currentUserId && (
-                                                                                <span className="text-xs bg-white/20 text-white/80 px-2 py-0.5 rounded-full">
-                                                                                    You
-                                                                                </span>
-                                                                            )}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Tasks Completed - white bold text, no line break */}
-                                                                <div className="col-span-2 text-right whitespace-nowrap">
-                                                                    <span className="text-white font-bold text-xl">
-                                                                        {taskCount}
-                                                                    </span>
-                                                                    <span className="text-white/70 font-bold text-xs ml-1">
-                                                                        {taskCount === 1 ? "task" : "tasks"}
-                                                                    </span>
-                                                                </div>
-                                                            </motion.div>
-                                                        );
-                                                    }
+                                                            {/* Tasks count */}
+                                                            <div className="col-span-2 text-right whitespace-nowrap">
+                                                                <span className="text-white font-bold text-xl">
+                                                                    {
+                                                                        user.total_completed
+                                                                    }
+                                                                </span>
+                                                                <span className="text-white/70 font-bold text-xs ml-1">
+                                                                    {user.total_completed ===
+                                                                    1
+                                                                        ? "task"
+                                                                        : "tasks"}
+                                                                </span>
+                                                            </div>
+                                                        </motion.div>
+                                                    )
                                                 )
                                             ) : (
                                                 <div className="text-center py-12 text-white/60">
-                                                    <p>No users found</p>
+                                                    <p>No users yet — be the first!</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Join Now Button - Chalk style on greenboard (only show if not logged in) */}
-                                    {!isLoggedIn && (
+                                    {/* Join Now button (guests only) */}
+                                    {!isLoggedIn && leaderboardData.length > 0 && (
                                         <div className="absolute bottom-6 right-6 z-20">
                                             <button
                                                 onClick={() =>
@@ -290,20 +278,18 @@ const Leaderboards = () => {
                                                 }
                                                 className="group relative px-8 py-3 text-white text-xl font-bold transition-all"
                                             >
-                                                {/* Chalk underline effect */}
                                                 <span className="relative">
                                                     Join Now!
-                                                    <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-white/60 rounded-full group-hover:bg-white/80 transition-all"></span>
-                                                    {/* Chalk dust effect on hover */}
+                                                    <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-white/60 rounded-full group-hover:bg-white/80 transition-all" />
                                                     <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 opacity-0 group-hover:opacity-100 group-hover:w-12 transition-all duration-300">
-                                                        <span className="absolute inset-0 bg-white blur-[2px] rounded-full"></span>
+                                                        <span className="absolute inset-0 bg-white blur-[2px] rounded-full" />
                                                     </span>
                                                 </span>
                                             </button>
                                         </div>
                                     )}
 
-                                    {/* Show Join Now in center if no data and not logged in - chalk style */}
+                                    {/* Join Now centered (guests + empty) */}
                                     {!isLoggedIn &&
                                         leaderboardData.length === 0 && (
                                             <div className="relative z-20 text-center pt-8 pb-4">
@@ -315,7 +301,7 @@ const Leaderboards = () => {
                                                 >
                                                     <span className="relative">
                                                         Join Now!
-                                                        <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-white/60 rounded-full group-hover:bg-white/80 transition-all"></span>
+                                                        <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-white/60 rounded-full group-hover:bg-white/80 transition-all" />
                                                     </span>
                                                 </button>
                                             </div>

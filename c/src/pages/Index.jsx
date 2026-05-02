@@ -17,26 +17,27 @@ import {
     Zap,
     Trophy
 } from "lucide-react";
+import leaderboardService from "@/services/leaderboardService";
 
 const Index = () => {
     const navigate = useNavigate();
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Helper function to get initials from fullname
-    const getInitials = (fullname) => {
-        if (!fullname) return "??";
-        const names = fullname.trim().split(" ");
+    const getInitials = full_name => {
+        if (!full_name) return "??";
+        const names = full_name.trim().split(" ");
         if (names.length === 1) return names[0].charAt(0).toUpperCase();
-        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+        return (
+            names[0].charAt(0) + names[names.length - 1].charAt(0)
+        ).toUpperCase();
     };
 
-    // Helper function to get gradient color based on rank
-    const getAvatarGradient = (rank) => {
+    const getAvatarGradient = rank => {
         const gradients = {
             1: "from-yellow-400 to-yellow-600",
             2: "from-gray-400 to-gray-600",
-            3: "from-amber-400 to-amber-600",
+            3: "from-amber-400 to-amber-600"
         };
         return gradients[rank] || "from-primary to-primary/70";
     };
@@ -45,13 +46,10 @@ const Index = () => {
         const fetchLeaderboardData = async () => {
             try {
                 setLoading(true);
-                const response = await leaderboardService.getLeaderboard(10);
-                if (response && response.leaderboard) {
-                    setLeaderboardData(response.leaderboard);
-                }
+                const data = await leaderboardService.getLeaderboard(10);
+                setLeaderboardData(data);
             } catch (error) {
                 console.error("Failed to fetch leaderboard:", error);
-                // Fallback to empty data
                 setLeaderboardData([]);
             } finally {
                 setLoading(false);
@@ -147,30 +145,30 @@ const Index = () => {
         }
     };
 
-    // Split data into left (1-5) and right (6-10)
     const leftColumnData = leaderboardData.slice(0, 5);
     const rightColumnData = leaderboardData.slice(5, 10);
 
-    // Avatar Component
     const UserAvatar = ({ user, rank }) => {
-        const initials = getInitials(user.fullname);
-        
-        if (user.image) {
+        const initials = getInitials(user.full_name);
+
+        if (user.avatar) {
             return (
                 <img
-                    src={user.image}
-                    alt={user.fullname}
+                    src={user.avatar}
+                    alt={user.full_name}
                     className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200"
-                    onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.querySelector('.initials-avatar').style.display = 'flex';
+                    onError={e => {
+                        e.target.style.display = "none";
+                        e.target.parentElement
+                            .querySelector(".initials-avatar")
+                            ?.style && (e.target.parentElement.querySelector(".initials-avatar").style.display = "flex");
                     }}
                 />
             );
         }
-        
+
         return (
-            <div 
+            <div
                 className={`initials-avatar w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm bg-gradient-to-br ${getAvatarGradient(rank)} ring-2 ring-gray-200`}
             >
                 {initials}
@@ -178,13 +176,30 @@ const Index = () => {
         );
     };
 
+    const LeaderboardRow = ({ user }) => (
+        <div className="flex items-center gap-4 py-2 border-b border-gray-200/50 last:border-0">
+            <div className="flex-shrink-0">{getRankBadge(user.rank)}</div>
+            <UserAvatar user={user} rank={user.rank} />
+            <div className="flex-1">
+                <h3 className="text-secondary font-semibold text-base">
+                    {user.full_name}
+                </h3>
+                <p className="text-primary text-md font-medium">
+                    {user.total_completed}{" "}
+                    <span className="text-sm text-secondary font-medium">
+                        task{user.total_completed !== 1 ? "s" : ""} completed
+                    </span>
+                </p>
+            </div>
+        </div>
+    );
+
     return (
         <div className="min-h-screen">
             <Header />
 
             {/* Hero Section */}
             <section className="min-h-screen flex items-center justify-center relative pt-20 bg-bgLight overflow-hidden">
-                {/* Ruled lines background */}
                 <div className="absolute inset-0 pointer-events-none">
                     {[...Array(40)].map((_, i) => (
                         <div
@@ -247,13 +262,12 @@ const Index = () => {
                     </motion.div>
                 </div>
             </section>
-          
+
             {/* Features Section */}
             <section className="py-12 px-8 bg-white">
                 <div className="border-[16px] border-amber-700 rounded-sm shadow-2xl mx-auto max-w-6xl">
                     <div className="border-[6px] border-amber-900 rounded-sm">
                         <div className="bg-emerald-900 px-8 py-12 relative overflow-hidden rounded-sm">
-                            {/* Chalk residue effect */}
                             <div className="absolute inset-0 pointer-events-none">
                                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_20%_30%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_80%_70%,_white_0%,_transparent_50%),_radial-gradient(ellipse_at_40%_85%,_white_0%,_transparent_60%),_radial-gradient(ellipse_at_60%_15%,_white_0%,_transparent_50%)]" />
                                 <div className="absolute top-1/4 left-0 w-full h-12 bg-gradient-to-r from-transparent via-white/15 to-transparent blur-sm rotate-3" />
@@ -262,8 +276,6 @@ const Index = () => {
                                 <div className="absolute top-20 left-2/3 w-px h-32 bg-white/15 blur-[1px] -rotate-6" />
                                 <div className="absolute top-32 left-16 w-24 h-16 bg-white/5 rounded-full blur-xl" />
                                 <div className="absolute bottom-20 right-12 w-32 h-20 bg-white/6 rounded-full blur-xl" />
-
-                                {/* Chalk speckles */}
                                 {[...Array(20)].map((_, i) => (
                                     <div
                                         key={i}
@@ -316,9 +328,7 @@ const Index = () => {
                                             <StickyNotesCard
                                                 icon={feature.icon}
                                                 title={feature.title}
-                                                description={
-                                                    feature.description
-                                                }
+                                                description={feature.description}
                                                 index={index}
                                             />
                                         </motion.div>
@@ -329,10 +339,9 @@ const Index = () => {
                     </div>
                 </div>
             </section>
-            
+
             {/* Leaderboards Section */}
             <section className="py-20 px-4 relative bg-bgLight overflow-hidden">
-                {/* Ruled lines background - paper style */}
                 <div className="absolute inset-0 pointer-events-none">
                     {[...Array(50)].map((_, i) => (
                         <div
@@ -341,16 +350,12 @@ const Index = () => {
                             style={{ top: `${i * 32 + 60}px` }}
                         />
                     ))}
-                    {/* Left red margin line */}
                     <div className="absolute top-0 bottom-0 left-32 w-px bg-red-400/30" />
-                    {/* Top red margin line */}
                     <div className="absolute top-20 left-0 right-0 h-px bg-red-400/30" />
-                    {/* Torn paper edge effect at bottom */}
                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-bgLight to-transparent" />
                 </div>
 
                 <div className="container mx-auto max-w-5xl relative z-10">
-                    {/* Header - centered title */}
                     <div className="text-center mb-6">
                         <motion.h2
                             initial={{ opacity: 0, y: -20 }}
@@ -364,7 +369,6 @@ const Index = () => {
                         <div className="w-24 h-0.5 bg-secondary/30 mx-auto mt-2" />
                     </div>
 
-                    {/* View Leaderboards button with border bottom */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
@@ -381,17 +385,15 @@ const Index = () => {
                         </button>
                     </motion.div>
 
-                    {/* Loading State */}
                     {loading && (
                         <div className="flex justify-center items-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
                         </div>
                     )}
 
-                    {/* Two column layout - Left: 1-5, Right: 6-10 */}
                     {!loading && (
                         <div className="grid md:grid-cols-2 gap-x-12 gap-y-6">
-                            {/* Left Column - Ranks 1-5 */}
+                            {/* Left Column — Ranks 1–5 */}
                             <motion.div
                                 initial={{ opacity: 0, x: -30 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -399,43 +401,18 @@ const Index = () => {
                                 transition={{ duration: 0.6 }}
                                 className="space-y-4"
                             >
-                                {leftColumnData.map(user => (
-                                    <div
-                                        key={user.id}
-                                        className="flex items-center gap-4 py-2 border-b border-gray-200/50 last:border-0"
-                                    >
-                                        {/* Rank Badge */}
-                                        <div className="flex-shrink-0">
-                                            {getRankBadge(user.rank)}
-                                        </div>
-
-                                        {/* Avatar or Initials */}
-                                        <UserAvatar user={user} rank={user.rank} />
-
-                                        {/* Name and Tasks */}
-                                        <div className="flex-1">
-                                            <h3 className="text-secondary font-semibold text-base">
-                                                {user.fullname}
-                                            </h3>
-                                            <p className="text-primary text-md font-medium">
-                                                {user.tasks_completed || user.tasksCompleted}{" "}
-                                                <span className="text-sm text-secondary font-medium">
-                                                    task{user.tasks_completed !== 1 ? 's' : ''} completed
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                                
-                                {/* Empty state for left column */}
-                                {leftColumnData.length === 0 && (
+                                {leftColumnData.length > 0 ? (
+                                    leftColumnData.map(user => (
+                                        <LeaderboardRow key={user.user_id} user={user} />
+                                    ))
+                                ) : (
                                     <div className="text-center py-8 text-gray-500">
-                                        No leaderboard data available
+                                        No leaderboard data yet
                                     </div>
                                 )}
                             </motion.div>
 
-                            {/* Right Column - Ranks 6-10 */}
+                            {/* Right Column — Ranks 6–10 */}
                             <motion.div
                                 initial={{ opacity: 0, x: 30 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -443,39 +420,16 @@ const Index = () => {
                                 transition={{ duration: 0.6 }}
                                 className="space-y-4"
                             >
-                                {rightColumnData.map(user => (
-                                    <div
-                                        key={user.id}
-                                        className="flex items-center gap-4 py-2 border-b border-gray-200/50 last:border-0"
-                                    >
-                                        {/* Rank Badge */}
-                                        <div className="flex-shrink-0">
-                                            {getRankBadge(user.rank)}
+                                {rightColumnData.length > 0 ? (
+                                    rightColumnData.map(user => (
+                                        <LeaderboardRow key={user.user_id} user={user} />
+                                    ))
+                                ) : (
+                                    leftColumnData.length > 0 && (
+                                        <div className="text-center py-8 text-gray-500">
+                                            No more users to display
                                         </div>
-
-                                        {/* Avatar or Initials */}
-                                        <UserAvatar user={user} rank={user.rank} />
-
-                                        {/* Name and Tasks */}
-                                        <div className="flex-1">
-                                            <h3 className="text-secondary font-semibold text-base">
-                                                {user.fullname}
-                                            </h3>
-                                            <p className="text-primary text-md font-medium">
-                                                {user.tasks_completed || user.tasksCompleted}{" "}
-                                                <span className="text-sm text-secondary font-medium">
-                                                    task{user.tasks_completed !== 1 ? 's' : ''} completed
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                                
-                                {/* Empty state for right column */}
-                                {rightColumnData.length === 0 && leftColumnData.length > 0 && (
-                                    <div className="text-center py-8 text-gray-500">
-                                        No more users to display
-                                    </div>
+                                    )
                                 )}
                             </motion.div>
                         </div>
@@ -524,6 +478,7 @@ const Index = () => {
                     </motion.div>
                 </div>
             </section>
+
             <Footer />
         </div>
     );

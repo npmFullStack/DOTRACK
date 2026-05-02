@@ -12,13 +12,14 @@ import {
     Check,
     FileText,
     ListChecks,
-    Clock
+    Clock,
+    Loader2
 } from "lucide-react";
 import DateTimePicker from "@/components/_DateTimePicker";
 import Instructions from "@/components/_Instructions";
 import Button from "@/components/_Button";
 import StickyNotesCard from "@/components/_StickyNotesCard";
-import todoService from "@/services/todoService";
+import taskService from "@/services/taskService";
 
 const NewTask = () => {
     const navigate = useNavigate();
@@ -60,29 +61,25 @@ const NewTask = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         if (!validateForm()) return;
 
         setLoading(true);
-        
+
         try {
-            // Filter out empty items and get just the text
             const items = taskItems
                 .filter(item => item.text.trim())
                 .map(item => item.text.trim());
-            
-            // Format expires_at for MySQL (YYYY-MM-DD HH:MM:SS)
-            const expires_at = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
-            
-            const response = await todoService.createTask(title, items, expires_at);
-            console.log("Task created successfully:", response);
-            
-            // Navigate back to todo list
+
+            await taskService.createTask(title, items, expiresAt);
             navigate("/todo");
         } catch (error) {
             console.error("Error creating task:", error);
-            setErrors({ submit: error.message || "Failed to create task. Please try again." });
+            setErrors({
+                submit:
+                    error.message || "Failed to create task. Please try again."
+            });
         } finally {
             setLoading(false);
         }
@@ -92,12 +89,14 @@ const NewTask = () => {
         {
             icon: FileText,
             title: "Task Title",
-            description: "Give your task a clear, descriptive name to help organize your tasks easily."
+            description:
+                "Give your task a clear, descriptive name to help organize your tasks easily."
         },
         {
             icon: ListChecks,
             title: "Task Items",
-            description: "Add individual tasks that need to be completed. You can add multiple items to your list.",
+            description:
+                "Add individual tasks that need to be completed. You can add multiple items to your list.",
             tips: [
                 "Click 'Add another item' to include multiple tasks",
                 "Each item can be checked off when completed"
@@ -106,7 +105,8 @@ const NewTask = () => {
         {
             icon: Clock,
             title: "Expiration Date & Time",
-            description: "Set when this task should expire. This helps prioritize urgent tasks.",
+            description:
+                "Set when this task should expire. This helps prioritize urgent tasks.",
             tips: [
                 "Less than 1 hour = minutes display",
                 "Less than 24 hours = hours display",
@@ -118,7 +118,7 @@ const NewTask = () => {
     return (
         <div className="min-h-screen bg-white p-4 sm:p-6 rounded-xl">
             <div className="max-w-6xl mx-auto">
-                {/* Header with back button */}
+                {/* Header */}
                 <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
                     <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -139,17 +139,16 @@ const NewTask = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                    {/* Form Section */}
+                    {/* Form */}
                     <div className="lg:col-span-2">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Submit Error */}
                             {errors.submit && (
                                 <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                                     {errors.submit}
                                 </div>
                             )}
 
-                            {/* Task Title Field */}
+                            {/* Title */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     Task Title *
@@ -178,7 +177,7 @@ const NewTask = () => {
                                 )}
                             </div>
 
-                            {/* Task Items Section - Dynamic rows */}
+                            {/* Items */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     Task Items *
@@ -240,7 +239,6 @@ const NewTask = () => {
                                         ))}
                                     </AnimatePresence>
 
-                                    {/* Add Item Button */}
                                     <motion.button
                                         type="button"
                                         whileHover={{ scale: 1.02 }}
@@ -260,7 +258,7 @@ const NewTask = () => {
                                 )}
                             </div>
 
-                            {/* Expires In Date & Time */}
+                            {/* Expires At */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     Expires In *
@@ -282,27 +280,37 @@ const NewTask = () => {
                                 </p>
                             </div>
 
-                            {/* Buttons Section - Below expires field */}
+                            {/* Buttons */}
                             <div className="pt-4 border-t border-gray-100">
-                                {/* Desktop buttons */}
+                                {/* Desktop */}
                                 <div className="hidden md:flex gap-3 justify-end">
-                                    <Button 
+                                    <Button
                                         variant="outline"
                                         onClick={() => navigate("/todo")}
                                         disabled={loading}
                                     >
                                         Cancel
                                     </Button>
-                                    <Button 
-                                        icon={Check}
+                                    <Button
+                                        icon={loading ? null : Check}
                                         onClick={handleSubmit}
                                         disabled={loading}
                                     >
-                                        {loading ? "Creating..." : "Create Task"}
+                                        {loading ? (
+                                            <div className="flex items-center gap-2">
+                                                <Loader2
+                                                    size={18}
+                                                    className="animate-spin"
+                                                />
+                                                <span>Creating...</span>
+                                            </div>
+                                        ) : (
+                                            "Create Task"
+                                        )}
                                     </Button>
                                 </div>
 
-                                {/* Mobile buttons */}
+                                {/* Mobile */}
                                 <div className="flex md:hidden gap-3">
                                     <button
                                         type="button"
@@ -317,7 +325,14 @@ const NewTask = () => {
                                         disabled={loading}
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors disabled:opacity-50"
                                     >
-                                        <Plus size={18} />
+                                        {loading ? (
+                                            <Loader2
+                                                size={18}
+                                                className="animate-spin"
+                                            />
+                                        ) : (
+                                            <Plus size={18} />
+                                        )}
                                         {loading ? "Creating..." : "Create Task"}
                                     </button>
                                 </div>
@@ -325,7 +340,7 @@ const NewTask = () => {
                         </form>
                     </div>
 
-                    {/* Instructions Section - Desktop */}
+                    {/* Instructions - Desktop */}
                     <div className="hidden lg:block lg:col-span-1">
                         <Instructions
                             title="How to Create a Task"
@@ -337,7 +352,7 @@ const NewTask = () => {
                 </div>
             </div>
 
-            {/* Mobile Floating Help Button */}
+            {/* Mobile Help FAB */}
             <div className="lg:hidden">
                 <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -348,11 +363,9 @@ const NewTask = () => {
                     <HelpCircle size={22} />
                 </motion.button>
 
-                {/* Mobile Instructions Drawer with StickyNotesCard */}
                 <AnimatePresence>
                     {showInstructions && (
                         <>
-                            {/* Backdrop */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -360,26 +373,30 @@ const NewTask = () => {
                                 onClick={() => setShowInstructions(false)}
                                 className="fixed inset-0 bg-black/50 z-40"
                             />
-
-                            {/* Drawer */}
                             <motion.div
                                 initial={{ y: "100%" }}
                                 animate={{ y: 0 }}
                                 exit={{ y: "100%" }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                                transition={{
+                                    type: "spring",
+                                    damping: 25,
+                                    stiffness: 300
+                                }}
                                 className="fixed bottom-0 left-0 right-0 z-50 bg-gray-50 rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto"
                             >
-                                {/* Drawer handle */}
                                 <div className="flex justify-center pt-3 pb-2">
                                     <div className="w-12 h-1 bg-gray-300 rounded-full" />
                                 </div>
-
                                 <div className="p-5 pt-2">
                                     <div className="flex items-center gap-2 mb-4 pb-2 border-b border-dashed border-primary">
-                                        <HelpCircle size={20} className="text-primary" />
-                                        <h3 className="text-lg font-bold text-gray-800">How to Create a Task</h3>
+                                        <HelpCircle
+                                            size={20}
+                                            className="text-primary"
+                                        />
+                                        <h3 className="text-lg font-bold text-gray-800">
+                                            How to Create a Task
+                                        </h3>
                                     </div>
-
                                     <div className="space-y-4">
                                         {instructionCards.map((card, index) => (
                                             <StickyNotesCard
@@ -391,16 +408,26 @@ const NewTask = () => {
                                             />
                                         ))}
                                     </div>
-
                                     <div className="mt-4 pt-3 border-t border-dashed border-primary">
                                         <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                                            <AlertCircle size={14} className="text-yellow-500" />
+                                            <AlertCircle
+                                                size={14}
+                                                className="text-yellow-500"
+                                            />
                                             Pro Tips
                                         </h4>
                                         <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
-                                            <li>Use specific deadlines for better time management</li>
-                                            <li>Break large tasks into smaller subtasks</li>
-                                            <li>Set realistic expiration times</li>
+                                            <li>
+                                                Use specific deadlines for
+                                                better time management
+                                            </li>
+                                            <li>
+                                                Break large tasks into smaller
+                                                subtasks
+                                            </li>
+                                            <li>
+                                                Set realistic expiration times
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
