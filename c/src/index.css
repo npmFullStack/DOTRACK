@@ -6,131 +6,25 @@
 @tailwind utilities;
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    font-family: "Fuzzy Bubbles", sans-serif;
-  }
+    *,
+    *::before,
+    *::after {
+        font-family: "Fuzzy Bubbles", sans-serif;
+    }
 
-  body {
-    background-color: #ffffff;
-  }
+    body {
+        background-color: #ffffff;
+    }
 }
 
 @layer utilities {
-  .font-logo {
-    font-family: "Fuzzy Bubbles", sans-serif;
-    font-weight: 700;
-  }
+    .font-logo {
+        font-family: "Fuzzy Bubbles", sans-serif;
+        font-weight: 700;
+    }
 
-  .font-button {
-    font-family: "Fuzzy Bubbles", sans-serif;
-    font-weight: 700;
-  }
-}
-
-/* ===== TOAST STYLES ===== */
-.toast-container {
-  z-index: 9999;
-}
-
-.react-hot-toast {
-  pointer-events: auto !important;
-}
-
-.react-hot-toast > div {
-  animation: slideInRight 0.3s ease forwards !important;
-  max-width: 380px !important;
-  background: white !important;
-  border-radius: 0.75rem !important;
-  padding: 0 !important;
-  margin: 0.5rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Toast content */
-.react-hot-toast > div > div {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 0.75rem !important;
-  padding: 1rem !important;
-  padding-right: 2.5rem !important;
-  position: relative !important;
-}
-
-/* Close button */
-.react-hot-toast button {
-  position: absolute !important;
-  top: 0.75rem !important;
-  right: 0.75rem !important;
-  width: 1.5rem !important;
-  height: 1.5rem !important;
-  padding: 0 !important;
-  border-radius: 0.375rem !important;
-  background: transparent !important;
-  color: #9ca3af !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-}
-
-.react-hot-toast button:hover {
-  background: #f3f4f6 !important;
-  color: #4b5563 !important;
-}
-
-/* Success toast */
-.react-hot-toast .go3958317564[data-type="success"] {
-  border-left: 4px solid #10b981 !important;
-}
-
-.react-hot-toast .go3958317564[data-type="success"] .go2072408551 {
-  color: #065f46 !important;
-}
-
-/* Error toast */
-.react-hot-toast .go3958317564[data-type="error"] {
-  border-left: 4px solid #ef4444 !important;
-}
-
-/* Animations */
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideOutRight {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(100px);
-  }
-}
-
-.react-hot-toast > div[data-mounted="false"] {
-  animation: slideOutRight 0.2s ease forwards !important;
-}
-
-/* Mobile responsive */
-@media (max-width: 640px) {
-  .toast-container {
-    top: 10px !important;
-    right: 10px !important;
-    left: 10px !important;
-  }
-  
-  .react-hot-toast > div {
-    max-width: calc(100vw - 20px) !important;
-    margin: 0 auto 0.5rem auto !important;
-  }
+    .font-button {
+        font-family: "Fuzzy Bubbles", sans-serif;
+        font-weight: 700;
+    }
 }

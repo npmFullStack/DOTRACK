@@ -1,117 +1,258 @@
 // src/components/_Toast.jsx
-import { Toaster as HotToaster } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { Toaster as HotToaster } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    X,
+    CheckCircle2,
+    AlertCircle,
+    Info,
+    AlertTriangle
+} from "lucide-react";
 
-const ToastIcon = ({ type }) => {
-    switch (type) {
-        case 'success':
-            return <CheckCircle size={20} className="text-green-500" />;
-        case 'error':
-            return <AlertCircle size={20} className="text-red-500" />;
-        case 'warning':
-            return <AlertTriangle size={20} className="text-amber-500" />;
-        default:
-            return <Info size={20} className="text-blue-500" />;
+if (typeof document !== "undefined" && !document.getElementById("_toast-kf")) {
+    const s = document.createElement("style");
+    s.id = "_toast-kf";
+    s.textContent = `
+        @keyframes _tSpin  { to { transform: rotate(360deg); } }
+        @keyframes _tDrain { from { width: 100%; } to { width: 0%; } }
+    `;
+    document.head.appendChild(s);
+}
+
+const CFG = {
+    success: {
+        Icon: CheckCircle2,
+        accent: "#16a34a", // green-600
+        border: "#dcfce7"
+    },
+    error: {
+        Icon: AlertCircle,
+        accent: "#dc2626", // red-600
+        border: "#fee2e2"
+    },
+    warning: {
+        Icon: AlertTriangle,
+        accent: "#d97706", // amber-600
+        border: "#fef3c7"
+    },
+    loading: {
+        Icon: null,
+        accent: "#2563eb", // blue-600
+        border: "#dbeafe"
+    },
+    default: {
+        Icon: Info,
+        accent: "#6b7280", // gray-500
+        border: "#e5e7eb"
     }
 };
 
-const ToastContent = ({ message, type, icon, onDismiss, id }) => {
+const Spinner = ({ accent }) => (
+    <svg
+        width="18"
+        height="18"
+        viewBox="0 0 20 20"
+        fill="none"
+        style={{
+            animation: "_tSpin 0.8s linear infinite",
+            display: "block",
+            flexShrink: 0
+        }}
+    >
+        <circle
+            cx="10"
+            cy="10"
+            r="7.5"
+            stroke={`${accent}22`}
+            strokeWidth="2.5"
+        />
+        <path
+            d="M10 2.5 A7.5 7.5 0 0 1 17.5 10"
+            stroke={accent}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            fill="none"
+        />
+    </svg>
+);
+
+const ToastCard = ({
+    message,
+    type,
+    icon: customIcon,
+    onDismiss,
+    duration
+}) => {
+    const { Icon, accent, border } = CFG[type] || CFG.default;
+    const isLoading = type === "loading";
+
     return (
         <motion.div
-            layout
-            initial={{ opacity: 0, x: 50, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 50, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className="relative flex items-center gap-3 py-3 pl-4 pr-12 rounded-xl shadow-lg bg-white border border-gray-100 min-w-[320px] max-w-md pointer-events-auto"
-            style={{ zIndex: 9999 }}
+            initial={{ opacity: 0, y: -12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "14px 44px 14px 16px",
+                borderRadius: "12px",
+                background: "#ffffff",
+                border: `1px solid ${border}`,
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02)",
+                minWidth: "280px",
+                maxWidth: "380px",
+                pointerEvents: "auto",
+                overflow: "hidden",
+                backdropFilter: "blur(0px)"
+            }}
         >
-            {/* Icon with proper left spacing - now has pl-4 on parent and this div has no extra margins */}
-            <div className="flex-shrink-0">
-                {icon || <ToastIcon type={type} />}
-            </div>
-            
-            {/* Message with proper styling based on type */}
-            <div className="flex-1">
-                <p className={`text-sm font-medium ${
-                    type === 'success' ? 'text-green-700' :
-                    type === 'error' ? 'text-red-700' :
-                    type === 'warning' ? 'text-amber-700' :
-                    'text-blue-700'
-                }`}>
-                    {message}
-                </p>
-            </div>
-            
-            {/* Close button */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onDismiss();
+            {/* Icon */}
+            <div
+                style={{ 
+                    flexShrink: 0, 
+                    display: "flex", 
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "20px",
+                    height: "20px"
                 }}
-                className="absolute top-3 right-3 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Close toast"
             >
-                <X size={16} />
-            </button>
+                {isLoading ? (
+                    <Spinner accent={accent} />
+                ) : (
+                    customIcon || (
+                        <Icon size={18} color={accent} strokeWidth={2} />
+                    )
+                )}
+            </div>
+
+            {/* Message */}
+            <p
+                style={{
+                    flex: 1,
+                    margin: 0,
+                    fontSize: "13.5px",
+                    fontWeight: 500,
+                    color: "#1f2937",
+                    lineHeight: "1.45",
+                    letterSpacing: "-0.01em",
+                    wordBreak: "break-word"
+                }}
+            >
+                {message}
+            </p>
+
+            {/* Dismiss */}
+            {!isLoading && (
+                <button
+                    onClick={e => {
+                        e.stopPropagation();
+                        onDismiss();
+                    }}
+                    aria-label="Close"
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        right: "12px",
+                        transform: "translateY(-50%)",
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "6px",
+                        border: "none",
+                        background: "transparent",
+                        color: "#9ca3af",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        padding: 0,
+                        transition: "all 0.15s ease"
+                    }}
+                    onMouseEnter={e =>
+                        Object.assign(e.currentTarget.style, {
+                            color: accent,
+                            background: `${accent}10`
+                        })
+                    }
+                    onMouseLeave={e =>
+                        Object.assign(e.currentTarget.style, {
+                            color: "#9ca3af",
+                            background: "transparent"
+                        })
+                    }
+                >
+                    <X size={14} strokeWidth={2} />
+                </button>
+            )}
+
+            {/* Drain bar */}
+            {!isLoading && duration !== Infinity && (
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: "3px",
+                        background: `${accent}14`
+                    }}
+                >
+                    <div
+                        style={{
+                            height: "100%",
+                            background: accent,
+                            borderRadius: "0 0 0 2px",
+                            animation: `_tDrain ${duration}ms linear forwards`
+                        }}
+                    />
+                </div>
+            )}
         </motion.div>
     );
 };
 
-export const Toaster = () => {
-    return (
-        <HotToaster
-            position="top-right"
-            toastOptions={{
-                duration: 4000,
-                success: {
-                    duration: 3000,
-                    iconTheme: {
-                        primary: '#10b981',
-                        secondary: '#ffffff',
-                    },
-                    style: {
-                        background: 'transparent',
-                        boxShadow: 'none',
-                        padding: 0,
-                    },
-                },
-                error: {
-                    duration: 5000,
-                    iconTheme: {
-                        primary: '#ef4444',
-                        secondary: '#ffffff',
-                    },
-                    style: {
-                        background: 'transparent',
-                        boxShadow: 'none',
-                        padding: 0,
-                    },
-                },
-                style: {
-                    background: 'transparent',
-                    boxShadow: 'none',
-                    padding: 0,
-                },
-            }}
-        >
-            {(t) => (
-                <AnimatePresence mode="wait">
-                    {t.visible && (
-                        <ToastContent
-                            key={t.id}
-                            message={typeof t.message === 'string' ? t.message : ''}
-                            type={t.type}
-                            icon={t.icon}
-                            onDismiss={() => t.dismiss()}
-                            id={t.id}
-                        />
-                    )}
-                </AnimatePresence>
-            )}
-        </HotToaster>
-    );
-};
+export const Toaster = () => (
+    <HotToaster
+        position="top-right"
+        gutter={12}
+        containerStyle={{ top: 20, right: 20, zIndex: 9999 }}
+        toastOptions={{
+            duration: 4000,
+            success: { duration: 3000 },
+            error: { duration: 5000 },
+            loading: { duration: Infinity },
+            style: {
+                background: "transparent",
+                boxShadow: "none",
+                padding: 0,
+                maxWidth: "none"
+            }
+        }}
+    >
+        {t => (
+            <AnimatePresence mode="wait">
+                {t.visible && (
+                    <ToastCard
+                        key={t.id}
+                        message={typeof t.message === "string" ? t.message : ""}
+                        type={t.type}
+                        icon={t.icon}
+                        onDismiss={() => t.dismiss(t.id)}
+                        duration={
+                            t.type === "success"
+                                ? 3000
+                                : t.type === "error"
+                                  ? 5000
+                                  : 4000
+                        }
+                    />
+                )}
+            </AnimatePresence>
+        )}
+    </HotToaster>
+);
 
 export default Toaster;
