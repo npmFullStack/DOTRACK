@@ -25,6 +25,7 @@ const ProtectedLayout = () => {
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false); // Loading state for logout
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
@@ -113,6 +114,7 @@ const ProtectedLayout = () => {
     };
 
     const handleConfirmLogout = async () => {
+        setLogoutLoading(true); // Start loading
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
@@ -123,6 +125,8 @@ const ProtectedLayout = () => {
         } catch (err) {
             console.error("Logout error:", err);
             toast.error("Failed to log out. Please try again.");
+        } finally {
+            setLogoutLoading(false); // Stop loading
         }
     };
 
@@ -338,6 +342,7 @@ const ProtectedLayout = () => {
                 image={warning}
                 onConfirm={handleConfirmLogout}
                 onCancel={handleCancelLogout}
+                loading={logoutLoading}
             />
         </div>
     );
