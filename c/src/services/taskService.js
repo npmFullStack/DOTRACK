@@ -26,6 +26,10 @@ const taskService = {
 
     /** Fetch all tasks (with their items) for the current user */
     async getTasks() {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError) throw userError
+        if (!user) throw new Error('Not authenticated')
+
         const { data: tasks, error } = await supabase
             .from('tasks')
             .select(`
@@ -42,10 +46,11 @@ const taskService = {
                     created_at
                 )
             `)
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false })
 
         if (error) throw error
-        return tasks
+        return tasks || []
     },
 
     /** Fetch a single task with its items */
@@ -99,7 +104,7 @@ const taskService = {
 
         // 2. Insert the items
         const itemRows = items
-            .filter(text => text.trim())
+            .filter(text => text && text.trim())
             .map(text => ({
                 task_id: task.id,
                 item_text: text.trim(),
@@ -147,7 +152,7 @@ const taskService = {
 
         // 3. Insert new items
         const itemRows = items
-            .filter(text => text.trim())
+            .filter(text => text && text.trim())
             .map(text => ({
                 task_id: taskId,
                 item_text: text.trim(),
@@ -187,7 +192,10 @@ const taskService = {
     async toggleItem(itemId, completed) {
         const { data, error } = await supabase
             .from('task_items')
-            .update({ completed })
+            .update({ 
+                completed: completed,
+                updated_at: new Date().toISOString()
+            })
             .eq('id', itemId)
             .select()
             .single()

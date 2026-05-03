@@ -195,7 +195,9 @@ const NewTask = () => {
                                             >
                                                 <div className="relative">
                                                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-move">
-                                                        <GripVertical size={16} />
+                                                        <GripVertical
+                                                            size={16}
+                                                        />
                                                     </div>
                                                     <input
                                                         type="text"
@@ -283,7 +285,7 @@ const NewTask = () => {
                             {/* Buttons */}
                             <div className="pt-4 border-t border-gray-100">
                                 {/* Desktop */}
-                                <div className="hidden md:flex gap-3 justify-end">
+                                <div className="hidden flex-col md:flex gap-3 justify-end">
                                     <Button
                                         variant="outline"
                                         onClick={() => navigate("/todo")}
@@ -333,7 +335,9 @@ const NewTask = () => {
                                         ) : (
                                             <Plus size={18} />
                                         )}
-                                        {loading ? "Creating..." : "Create Task"}
+                                        {loading
+                                            ? "Creating..."
+                                            : "Create Task"}
                                     </button>
                                 </div>
                             </div>

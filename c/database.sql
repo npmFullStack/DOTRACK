@@ -26,6 +26,12 @@ DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile" ON public.profiles
     FOR SELECT USING (auth.uid() = id);
 
+-- ✅ FIX: Allow anyone to read full_name and avatar so the leaderboard
+--         can display real names instead of "Anonymous"
+DROP POLICY IF EXISTS "Public can view profile names and avatars" ON public.profiles;
+CREATE POLICY "Public can view profile names and avatars" ON public.profiles
+    FOR SELECT USING (true);
+
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles
     FOR UPDATE USING (auth.uid() = id);
@@ -162,7 +168,6 @@ DROP POLICY IF EXISTS "Anyone can view leaderboard" ON public.leaderboards;
 CREATE POLICY "Anyone can view leaderboard" ON public.leaderboards
     FOR SELECT USING (true);
 
--- Only the system (via trigger) inserts/updates — users cannot modify directly
 DROP POLICY IF EXISTS "Users can insert own leaderboard row" ON public.leaderboards;
 CREATE POLICY "Users can insert own leaderboard row" ON public.leaderboards
     FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -183,38 +188,45 @@ DECLARE
     v_user_id UUID;
     v_count INTEGER;
 BEGIN
-    -- Determine which task_item row changed
+    -- Determine user_id based on operation
     IF TG_OP = 'DELETE' THEN
-        SELECT tasks.user_id INTO v_user_id
-        FROM public.tasks WHERE tasks.id = OLD.task_id;
+        SELECT t.user_id INTO v_user_id
+        FROM public.tasks t
+        WHERE t.id = OLD.task_id;
     ELSE
-        SELECT tasks.user_id INTO v_user_id
-        FROM public.tasks WHERE tasks.id = NEW.task_id;
+        SELECT t.user_id INTO v_user_id
+        FROM public.tasks t
+        WHERE t.id = NEW.task_id;
     END IF;
-
-    -- Count ALL completed items for this user across all tasks
-    SELECT COUNT(*) INTO v_count
-    FROM public.task_items ti
-    JOIN public.tasks t ON t.id = ti.task_id
-    WHERE t.user_id = v_user_id
-      AND ti.completed = TRUE;
-
-    -- Upsert into leaderboards
-    INSERT INTO public.leaderboards (user_id, total_completed, updated_at)
-    VALUES (v_user_id, v_count, NOW())
-    ON CONFLICT (user_id)
-    DO UPDATE SET
-        total_completed = EXCLUDED.total_completed,
-        updated_at = NOW();
-
-    RETURN NEW;
+    
+    -- Only proceed if we found a user
+    IF v_user_id IS NOT NULL THEN
+        -- Count ONLY completed items for this user
+        SELECT COUNT(*) INTO v_count
+        FROM public.task_items ti
+        INNER JOIN public.tasks t ON t.id = ti.task_id
+        WHERE t.user_id = v_user_id
+          AND ti.completed = TRUE;
+        
+        -- Insert or update leaderboard
+        INSERT INTO public.leaderboards (user_id, total_completed, updated_at)
+        VALUES (v_user_id, v_count, NOW())
+        ON CONFLICT (user_id) 
+        DO UPDATE SET 
+            total_completed = EXCLUDED.total_completed,
+            updated_at = NOW();
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Drop and recreate trigger
 DROP TRIGGER IF EXISTS on_task_item_change ON public.task_items;
 CREATE TRIGGER on_task_item_change
     AFTER INSERT OR UPDATE OR DELETE ON public.task_items
-    FOR EACH ROW EXECUTE FUNCTION public.sync_leaderboard();
+    FOR EACH ROW 
+    EXECUTE FUNCTION public.sync_leaderboard();
 
 -- ============================================================
 -- TRIGGER: auto-set completed_at when item is toggled
@@ -222,9 +234,9 @@ CREATE TRIGGER on_task_item_change
 CREATE OR REPLACE FUNCTION public.handle_task_item_completion()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.completed = TRUE AND OLD.completed = FALSE THEN
+    IF NEW.completed = TRUE AND (OLD IS NULL OR OLD.completed = FALSE) THEN
         NEW.completed_at = NOW();
-    ELSIF NEW.completed = FALSE THEN
+    ELSIF NEW.completed = FALSE AND OLD IS NOT NULL AND OLD.completed = TRUE THEN
         NEW.completed_at = NULL;
     END IF;
     NEW.updated_at = NOW();
@@ -235,7 +247,61 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS on_task_item_update ON public.task_items;
 CREATE TRIGGER on_task_item_update
     BEFORE UPDATE ON public.task_items
-    FOR EACH ROW EXECUTE FUNCTION public.handle_task_item_completion();
+    FOR EACH ROW 
+    EXECUTE FUNCTION public.handle_task_item_completion();
+
+-- ============================================================
+-- TRIGGER: seed leaderboard row when a new profile is created
+-- so every user appears on the leaderboard from day one (with 0)
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.seed_leaderboard_on_signup()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.leaderboards (user_id, total_completed, updated_at)
+    VALUES (NEW.id, 0, NOW())
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_profile_created ON public.profiles;
+CREATE TRIGGER on_profile_created
+    AFTER INSERT ON public.profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.seed_leaderboard_on_signup();
+
+-- ============================================================
+-- FUNCTION: Initialize leaderboard for existing data
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.initialize_leaderboards()
+RETURNS void AS $$
+BEGIN
+    -- ✅ FIX: Insert ALL existing profiles with 0 as default,
+    --         then update with real counts — so every user appears.
+    INSERT INTO public.leaderboards (user_id, total_completed, updated_at)
+    SELECT id, 0, NOW()
+    FROM public.profiles
+    ON CONFLICT (user_id) DO NOTHING;
+
+    -- Now update counts for users who have completed items
+    UPDATE public.leaderboards lb
+    SET 
+        total_completed = sub.completed_count,
+        updated_at = NOW()
+    FROM (
+        SELECT 
+            t.user_id,
+            COUNT(CASE WHEN ti.completed = TRUE THEN 1 END) AS completed_count
+        FROM public.tasks t
+        LEFT JOIN public.task_items ti ON ti.task_id = t.id
+        GROUP BY t.user_id
+    ) sub
+    WHERE lb.user_id = sub.user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ✅ Run it immediately so existing users are seeded
+SELECT public.initialize_leaderboards();
 
 -- ============================================================
 -- STORAGE: avatars bucket

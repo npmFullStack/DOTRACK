@@ -40,7 +40,7 @@ const TodoList = () => {
                     id: task.id,
                     title: task.title,
                     expiresIn: expiresIn,
-                    items: task.task_items.map(item => ({
+                    items: (task.task_items || []).map(item => ({
                         id: item.id,
                         text: item.item_text,
                         completed: item.completed === true
@@ -59,8 +59,10 @@ const TodoList = () => {
 
     const handleItemToggle = async (listId, itemId, completed) => {
         try {
+            // Toggle the item (completed is the current state, we want to invert it)
             await taskService.toggleItem(itemId, !completed);
 
+            // Update local state immediately for responsive UI
             setTodoLists(prevLists =>
                 prevLists.map(list =>
                     list.id === listId
@@ -78,6 +80,8 @@ const TodoList = () => {
         } catch (err) {
             console.error("Error toggling item:", err);
             setError("Failed to update item status");
+            // Refresh tasks to ensure consistency
+            await fetchTasks();
         }
     };
 
